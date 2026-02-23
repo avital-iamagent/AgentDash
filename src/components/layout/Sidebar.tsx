@@ -1,5 +1,6 @@
 import { useAppStore } from "../../stores/appStore";
 import PhaseStepper from "./PhaseStepper";
+import GitStatus from "./GitStatus";
 
 export default function Sidebar() {
   const projectName = useAppStore((s) => s.projectName);
@@ -29,6 +30,9 @@ export default function Sidebar() {
         </div>
         <PhaseStepper />
       </div>
+
+      {/* Git status */}
+      <GitStatus />
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-edge space-y-2">

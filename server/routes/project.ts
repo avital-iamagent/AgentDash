@@ -5,6 +5,7 @@ import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import type { RecentProject, RecentProjectsFile } from "../types/index.js";
+import { detectGitStatus } from "./git.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -121,7 +122,7 @@ function initialMeta(projectName: string): object {
       environment: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
       tasks: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
     },
-    git: { enabled: false, branch: null, lastCommit: null, remoteUrl: null, authMethod: null },
+    git: { enabled: false, branch: null, lastCommit: null, remoteUrl: null, authMethod: null, gitDismissed: false },
   };
 }
 
@@ -171,6 +172,29 @@ projectRoutes.post("/open", async (req, res) => {
   try {
     const metaRaw = await fs.readFile(metaPath, "utf-8");
     const meta = JSON.parse(metaRaw);
+
+    // Auto-detect git: if directory is a git repo but meta says disabled, populate git fields
+    if (!meta.git?.enabled) {
+      const gitInfo = await detectGitStatus(resolvedDir);
+      if (gitInfo.isGitRepo) {
+        meta.git = {
+          ...meta.git,
+          enabled: true,
+          branch: gitInfo.branch,
+          lastCommit: gitInfo.lastCommit,
+          remoteUrl: gitInfo.remoteUrl,
+          gitDismissed: meta.git?.gitDismissed ?? false,
+        };
+        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
+      }
+    }
+
+    // Ensure gitDismissed field exists (backfill for older projects)
+    if (meta.git && meta.git.gitDismissed === undefined) {
+      meta.git.gitDismissed = false;
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
+    }
+
     await scaffoldClaudeDir(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, meta.projectName || path.basename(resolvedDir));

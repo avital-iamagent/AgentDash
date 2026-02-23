@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import { useAppStore } from "../../stores/appStore";
+import type { Meta } from "../../types";
+import GitSetupScreen from "./GitSetupScreen";
+import GitRemoteScreen from "./GitRemoteScreen";
 
 interface RecentProject {
   dir: string;
   name: string;
   lastOpened: string;
+}
+
+interface PendingProject {
+  dir: string;
+  name: string;
+  meta: Meta;
+  mode: "new" | "existing";
 }
 
 export default function StartScreen() {
@@ -15,6 +25,10 @@ export default function StartScreen() {
   const [recent, setRecent] = useState<RecentProject[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Wizard state
+  const [wizardStep, setWizardStep] = useState<"start" | "gitSetup" | "gitRemote">("start");
+  const [pendingProject, setPendingProject] = useState<PendingProject | null>(null);
 
   // Load recent projects
   useEffect(() => {
@@ -31,6 +45,12 @@ export default function StartScreen() {
     return data.dir || null;
   }
 
+  /** Navigate to dashboard with given project */
+  function goToDashboard(dir: string, meta: Meta) {
+    setProject(dir, meta.projectName);
+    setMeta(meta);
+  }
+
   async function handleCreate() {
     setLoading(true);
     setError(null);
@@ -45,8 +65,24 @@ export default function StartScreen() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create project");
-      setProject(dir, data.meta.projectName);
-      setMeta(data.meta);
+
+      const meta: Meta = data.meta;
+
+      // If folder already has .git, auto-detect was done in create
+      if (meta.git.enabled) {
+        // Has remote → dashboard; no remote and not dismissed → remote screen
+        if (meta.git.remoteUrl || meta.git.gitDismissed) {
+          goToDashboard(dir, meta);
+        } else {
+          setPendingProject({ dir, name: meta.projectName, meta, mode: "new" });
+          setWizardStep("gitRemote");
+        }
+        return;
+      }
+
+      // Show git setup wizard
+      setPendingProject({ dir, name: meta.projectName, meta, mode: "new" });
+      setWizardStep("gitSetup");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -78,13 +114,141 @@ export default function StartScreen() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to open project");
-      setProject(targetDir, data.meta.projectName);
-      setMeta(data.meta);
+
+      const meta: Meta = data.meta;
+
+      // Git enabled: check if we need the remote step
+      if (meta.git.enabled) {
+        if (!meta.git.remoteUrl && !meta.git.gitDismissed) {
+          setPendingProject({ dir: targetDir, name: meta.projectName, meta, mode: "existing" });
+          setWizardStep("gitRemote");
+        } else {
+          goToDashboard(targetDir, meta);
+        }
+        return;
+      }
+
+      // Git dismissed (but not enabled) → dashboard
+      if (meta.git.gitDismissed) {
+        goToDashboard(targetDir, meta);
+        return;
+      }
+
+      // Show git setup for existing project
+      setPendingProject({ dir: targetDir, name: meta.projectName, meta, mode: "existing" });
+      setWizardStep("gitSetup");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
+  }
+
+  // --- Git setup handlers ---
+
+  async function handleGitInit() {
+    if (!pendingProject) return;
+    try {
+      const res = await fetch("/api/git/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dir: pendingProject.dir }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to initialize git");
+
+      const updatedMeta: Meta = { ...pendingProject.meta, git: data.git };
+      setPendingProject({ ...pendingProject, meta: updatedMeta });
+      setWizardStep("gitRemote");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      // Stay on git setup screen so user can skip
+    }
+  }
+
+  function handleGitSkip() {
+    if (!pendingProject) return;
+    goToDashboard(pendingProject.dir, pendingProject.meta);
+  }
+
+  async function handleGitDismiss() {
+    if (!pendingProject) return;
+    try {
+      await fetch("/api/git/dismiss", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dir: pendingProject.dir }),
+      });
+    } catch {
+      // Best effort — still proceed to dashboard
+    }
+    const updatedMeta: Meta = {
+      ...pendingProject.meta,
+      git: { ...pendingProject.meta.git, gitDismissed: true },
+    };
+    goToDashboard(pendingProject.dir, updatedMeta);
+  }
+
+  // --- Git remote handlers ---
+
+  async function handleAddRemote(url: string) {
+    if (!pendingProject) return;
+    const res = await fetch("/api/git/remote/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dir: pendingProject.dir, url }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to add remote");
+
+    const updatedMeta: Meta = { ...pendingProject.meta, git: data.git };
+    goToDashboard(pendingProject.dir, updatedMeta);
+  }
+
+  async function handleCreateRepo(name: string, visibility: "public" | "private") {
+    if (!pendingProject) return;
+    const res = await fetch("/api/git/gh-create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dir: pendingProject.dir, repoName: name, visibility }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to create repository");
+
+    const updatedMeta: Meta = { ...pendingProject.meta, git: data.git };
+    goToDashboard(pendingProject.dir, updatedMeta);
+  }
+
+  function handleRemoteSkip() {
+    if (!pendingProject) return;
+    goToDashboard(pendingProject.dir, pendingProject.meta);
+  }
+
+  // --- Render ---
+
+  if (wizardStep === "gitRemote" && pendingProject) {
+    return (
+      <GitRemoteScreen
+        dir={pendingProject.dir}
+        projectName={pendingProject.name}
+        onAddRemote={handleAddRemote}
+        onCreateRepo={handleCreateRepo}
+        onSkip={handleRemoteSkip}
+      />
+    );
+  }
+
+  if (wizardStep === "gitSetup" && pendingProject) {
+    return (
+      <GitSetupScreen
+        dir={pendingProject.dir}
+        projectName={pendingProject.name}
+        mode={pendingProject.mode}
+        onInitGit={handleGitInit}
+        onSkip={handleGitSkip}
+        onDismiss={handleGitDismiss}
+      />
+    );
   }
 
   function formatDate(iso: string) {

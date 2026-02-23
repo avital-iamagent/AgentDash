@@ -30,6 +30,7 @@ export const metaSchema = z.object({
     lastCommit: z.string().nullable(),
     remoteUrl: z.string().nullable(),
     authMethod: z.string().nullable(),
+    gitDismissed: z.boolean(),
   }),
 });
 

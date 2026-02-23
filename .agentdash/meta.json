@@ -44,6 +44,7 @@
     "branch": null,
     "lastCommit": null,
     "remoteUrl": null,
-    "authMethod": null
+    "authMethod": null,
+    "gitDismissed": false
   }
 }
