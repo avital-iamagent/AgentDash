@@ -11,8 +11,20 @@ const RECENT_FILE = path.join(os.homedir(), ".agentdash", "recent.json");
 // Active project directory — set when a project is opened
 let activeProjectDir: string | null = null;
 
+// Callback invoked when the active project changes
+let onProjectOpenCallback: (() => void) | null = null;
+
 export function getActiveProjectDir(): string | null {
   return activeProjectDir;
+}
+
+export function setOnProjectOpen(cb: () => void) {
+  onProjectOpenCallback = cb;
+}
+
+function setActiveProject(dir: string) {
+  activeProjectDir = dir;
+  onProjectOpenCallback?.();
 }
 
 // --- Helpers ---
@@ -88,7 +100,7 @@ projectRoutes.post("/open", async (req, res) => {
   try {
     const metaRaw = await fs.readFile(metaPath, "utf-8");
     const meta = JSON.parse(metaRaw);
-    activeProjectDir = dir;
+    setActiveProject(dir);
     await addToRecent(dir, meta.projectName || path.basename(dir));
     res.json({ ok: true, meta });
   } catch {
@@ -151,7 +163,7 @@ projectRoutes.post("/create", async (req, res) => {
       // Templates dir might not exist if creating in the same dir
     }
 
-    activeProjectDir = dir;
+    setActiveProject(dir);
     await addToRecent(dir, projectName);
     res.json({ ok: true, meta });
   } catch (err) {

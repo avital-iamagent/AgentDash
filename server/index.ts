@@ -1,9 +1,12 @@
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
+import { WebSocketServer } from "ws";
 import { stateRoutes } from "./routes/state.js";
-import { projectRoutes } from "./routes/project.js";
+import { projectRoutes, setOnProjectOpen } from "./routes/project.js";
 import { gitRoutes } from "./routes/git.js";
+import { setupPromptHandler } from "./ws/prompt.js";
+import { setupFileWatcher, startWatching } from "./ws/filewatch.js";
 
 const app = express();
 
@@ -23,13 +26,23 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 const server = createServer(app);
+const wss = new WebSocketServer({ server, path: "/ws" });
 
-// WebSocket will be added in Task 1.5
-// const wss = new WebSocketServer({ server, path: "/ws" });
+// WebSocket handlers
+setupPromptHandler(wss);
+setupFileWatcher(wss);
+
+// Re-initialize file watcher when a project is opened
+setOnProjectOpen(() => startWatching(wss));
+
+// WebSocket error handling
+wss.on("error", (err) => {
+  console.error("[AgentDash] WebSocket server error:", err.message);
+});
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`AgentDash server running on http://localhost:${PORT}`);
 });
 
-export { server };
+export { server, wss };
