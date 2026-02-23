@@ -132,6 +132,36 @@ stateRoutes.get("/templates/:name", async (req, res) => {
   }
 });
 
+// GET /api/history
+stateRoutes.get("/history", async (_req, res) => {
+  try {
+    const dir = requireProject();
+    const historyPath = path.join(dir, ".agentdash", "history.json");
+    const raw = await fs.readFile(historyPath, "utf-8");
+    res.json(JSON.parse(raw));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("ENOENT")) {
+      res.json([]);
+    } else {
+      res.status(500).json({ error: message });
+    }
+  }
+});
+
+// POST /api/history
+stateRoutes.post("/history", async (req, res) => {
+  try {
+    const dir = requireProject();
+    const historyPath = path.join(dir, ".agentdash", "history.json");
+    await fs.writeFile(historyPath, JSON.stringify(req.body, null, 2));
+    res.json({ ok: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: message });
+  }
+});
+
 // GET /api/research-notes
 stateRoutes.get("/research-notes", async (_req, res) => {
   try {

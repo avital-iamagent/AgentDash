@@ -23,12 +23,18 @@ function Dashboard() {
   // Auto-refresh meta on file changes
   const { data: metaData } = useMeta();
   const setMeta = useAppStore((s) => s.setMeta);
+  const loadHistory = useAppStore((s) => s.loadHistory);
 
   useEffect(() => {
     if (metaData) {
       setMeta(metaData as ReturnType<typeof useAppStore.getState>["meta"] & object);
     }
   }, [metaData, setMeta]);
+
+  // Load persisted history on mount
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   return (
     <div className="flex h-screen bg-canvas">

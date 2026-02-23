@@ -11,7 +11,7 @@ import { setupFileWatcher, startWatching } from "./ws/filewatch.js";
 const app = express();
 
 // CORS — permissive for local dev, lock down in production
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || true }));
 app.use(express.json());
 
 // REST routes
@@ -41,8 +41,8 @@ wss.on("error", (err) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`AgentDash server running on http://localhost:${PORT}`);
+server.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`AgentDash server running on http://0.0.0.0:${PORT}`);
 });
 
 export { server, wss };

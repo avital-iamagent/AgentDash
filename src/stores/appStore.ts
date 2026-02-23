@@ -37,8 +37,9 @@ interface AppState {
   appendStreamContent: (chunk: string) => void;
   clearStreamContent: () => void;
 
-  // Message history
+  // Message history (persisted to .agentdash/history.json)
   history: HistoryEntry[];
+  loadHistory: () => Promise<void>;
   clearHistory: () => void;
 
   // Error state
@@ -51,7 +52,18 @@ function genId() {
   return String(nextId++);
 }
 
-export const useAppStore = create<AppState>((set) => ({
+/** Save history to server (fire-and-forget) */
+function persistHistory(entries: HistoryEntry[]) {
+  fetch("/api/history", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entries),
+  }).catch(() => {
+    // silent — best effort persistence
+  });
+}
+
+export const useAppStore = create<AppState>((set, get) => ({
   projectDir: null,
   projectName: null,
   setProject: (dir, name) => set({ projectDir: dir, projectName: name }),
@@ -86,35 +98,54 @@ export const useAppStore = create<AppState>((set) => ({
   streamingContent: "",
   pendingUserPrompt: null,
   startStreaming: (userPrompt) => set({ isStreaming: true, streamingContent: "", pendingUserPrompt: userPrompt ?? null }),
-  stopStreaming: () =>
-    set((s) => {
-      const entries: HistoryEntry[] = [];
-      const phase = s.activePhase;
-      const now = Date.now();
+  stopStreaming: () => {
+    const s = get();
+    const entries: HistoryEntry[] = [];
+    const phase = s.activePhase;
+    const now = Date.now();
 
-      // Add the user prompt that triggered this response
-      if (s.pendingUserPrompt) {
-        entries.push({ id: genId(), role: "user", content: s.pendingUserPrompt, phase, timestamp: now - 1 });
-      }
+    if (s.pendingUserPrompt) {
+      entries.push({ id: genId(), role: "user", content: s.pendingUserPrompt, phase, timestamp: now - 1 });
+    }
+    if (s.streamingContent) {
+      entries.push({ id: genId(), role: "assistant", content: s.streamingContent, phase, timestamp: now });
+    }
 
-      // Add assistant response
-      if (s.streamingContent) {
-        entries.push({ id: genId(), role: "assistant", content: s.streamingContent, phase, timestamp: now });
-      }
+    const newHistory = [...s.history, ...entries];
+    set({
+      isStreaming: false,
+      streamingContent: "",
+      pendingUserPrompt: null,
+      history: newHistory,
+    });
 
-      return {
-        isStreaming: false,
-        streamingContent: "",
-        pendingUserPrompt: null,
-        history: [...s.history, ...entries],
-      };
-    }),
+    persistHistory(newHistory);
+  },
   appendStreamContent: (chunk) =>
     set((s) => ({ streamingContent: s.streamingContent + chunk })),
   clearStreamContent: () => set({ streamingContent: "", isStreaming: false, pendingUserPrompt: null }),
 
   history: [],
-  clearHistory: () => set({ history: [] }),
+  loadHistory: async () => {
+    try {
+      const res = await fetch("/api/history");
+      if (res.ok) {
+        const entries: HistoryEntry[] = await res.json();
+        if (Array.isArray(entries) && entries.length > 0) {
+          // Advance the ID counter past any loaded IDs
+          const maxId = Math.max(...entries.map((e) => Number(e.id) || 0));
+          if (maxId >= nextId) nextId = maxId + 1;
+          set({ history: entries });
+        }
+      }
+    } catch {
+      // silent — history will just start empty
+    }
+  },
+  clearHistory: () => {
+    set({ history: [] });
+    persistHistory([]);
+  },
 
   error: null,
   setError: (error) => set({ error }),
