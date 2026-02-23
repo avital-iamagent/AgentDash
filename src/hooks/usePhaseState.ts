@@ -9,6 +9,12 @@ interface UsePhaseStateResult {
   refetch: () => void;
 }
 
+interface UseContentResult {
+  content: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
 /**
  * Fetches phase state from REST API and auto-refetches
  * when the server broadcasts a file_changed event for that phase.
@@ -97,4 +103,102 @@ export function useMeta() {
   }, [fetchMeta]);
 
   return { data, loading, refetch: fetchMeta };
+}
+
+/**
+ * Fetches a phase's artifact markdown and auto-refetches on file changes.
+ */
+export function useArtifact(phase: PhaseName): UseContentResult {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchArtifact = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/phase/${phase}/artifact`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          setContent(null);
+          return;
+        }
+        let errMsg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          if (body.error) errMsg = body.error;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+      const json = await res.json();
+      setContent(json.content ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    fetchArtifact();
+  }, [fetchArtifact]);
+
+  useEffect(() => {
+    return subscribeToFileChanges((changedPhase) => {
+      if (changedPhase === phase || changedPhase === "artifacts") {
+        fetchArtifact();
+      }
+    });
+  }, [phase, fetchArtifact]);
+
+  return { content, loading, error };
+}
+
+/**
+ * Fetches a phase's review report markdown and auto-refetches on file changes.
+ */
+export function useReview(phase: PhaseName): UseContentResult {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchReview = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/phase/${phase}/review`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          setContent(null);
+          return;
+        }
+        let errMsg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          if (body.error) errMsg = body.error;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+      const json = await res.json();
+      setContent(json.content ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    fetchReview();
+  }, [fetchReview]);
+
+  useEffect(() => {
+    return subscribeToFileChanges((changedPhase) => {
+      if (changedPhase === phase) {
+        fetchReview();
+      }
+    });
+  }, [phase, fetchReview]);
+
+  return { content, loading, error };
 }

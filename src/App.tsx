@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "./stores/appStore";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useMeta } from "./hooks/usePhaseState";
@@ -7,6 +7,8 @@ import Sidebar from "./components/layout/Sidebar";
 import PhaseHeader from "./components/layout/PhaseHeader";
 import PromptBar from "./components/layout/PromptBar";
 import StreamingDisplay from "./components/layout/StreamingDisplay";
+import ArtifactPreview from "./components/artifact/ArtifactPreview";
+import ReviewPanel from "./components/layout/ReviewPanel";
 import BrainstormBoard from "./components/phases/BrainstormBoard";
 import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
@@ -14,8 +16,22 @@ import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
 import type { PhaseName } from "./types";
 
+type TabName = "data" | "artifact" | "review";
+
+const TABS: { key: TabName; label: string }[] = [
+  { key: "data", label: "Data" },
+  { key: "artifact", label: "Artifact" },
+  { key: "review", label: "Review" },
+];
+
 function Dashboard() {
   const activePhase = useAppStore((s) => s.activePhase);
+  const [activeTab, setActiveTab] = useState<TabName>("data");
+
+  // Reset tab to "data" when phase changes
+  useEffect(() => {
+    setActiveTab("data");
+  }, [activePhase]);
 
   // Initialize WebSocket connection
   useWebSocket();
@@ -46,9 +62,38 @@ function Dashboard() {
           <PhaseHeader />
         </div>
 
+        {/* Tab bar */}
+        <div className="px-6 flex gap-1 border-b border-edge bg-panel/30">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="relative px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  color: isActive
+                    ? `var(--color-phase-${activePhase})`
+                    : "var(--color-ink-muted)",
+                }}
+              >
+                {tab.label}
+                {isActive && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 h-[2px]"
+                    style={{ backgroundColor: `var(--color-phase-${activePhase})` }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Phase content area */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <PhaseContent phase={activePhase} />
+          {activeTab === "data" && <PhaseContent phase={activePhase} />}
+          {activeTab === "artifact" && <ArtifactPreview phase={activePhase} />}
+          {activeTab === "review" && <ReviewPanel phase={activePhase} />}
         </div>
 
         {/* Streaming response display */}
