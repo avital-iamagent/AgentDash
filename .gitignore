@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# AgentDash state is tracked (it's the whole point)
+# But research notes are optional
+# .agentdash/research-notes/  <- uncomment to exclude
