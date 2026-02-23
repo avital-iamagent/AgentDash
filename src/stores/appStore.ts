@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import type { Meta, PhaseName } from "../types";
 
+export interface HistoryEntry {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  phase: PhaseName;
+  timestamp: number;
+}
+
 interface AppState {
   // Project identity (null = show start screen)
   projectDir: string | null;
@@ -23,14 +31,24 @@ interface AppState {
   // Streaming state
   isStreaming: boolean;
   streamingContent: string;
-  startStreaming: () => void;
+  pendingUserPrompt: string | null;
+  startStreaming: (userPrompt?: string) => void;
   stopStreaming: () => void;
   appendStreamContent: (chunk: string) => void;
   clearStreamContent: () => void;
 
+  // Message history
+  history: HistoryEntry[];
+  clearHistory: () => void;
+
   // Error state
   error: string | null;
   setError: (error: string | null) => void;
+}
+
+let nextId = 1;
+function genId() {
+  return String(nextId++);
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -45,6 +63,8 @@ export const useAppStore = create<AppState>((set) => ({
       activePhase: "brainstorm",
       isStreaming: false,
       streamingContent: "",
+      pendingUserPrompt: null,
+      history: [],
       error: null,
     }),
 
@@ -64,11 +84,37 @@ export const useAppStore = create<AppState>((set) => ({
 
   isStreaming: false,
   streamingContent: "",
-  startStreaming: () => set({ isStreaming: true, streamingContent: "" }),
-  stopStreaming: () => set({ isStreaming: false }),
+  pendingUserPrompt: null,
+  startStreaming: (userPrompt) => set({ isStreaming: true, streamingContent: "", pendingUserPrompt: userPrompt ?? null }),
+  stopStreaming: () =>
+    set((s) => {
+      const entries: HistoryEntry[] = [];
+      const phase = s.activePhase;
+      const now = Date.now();
+
+      // Add the user prompt that triggered this response
+      if (s.pendingUserPrompt) {
+        entries.push({ id: genId(), role: "user", content: s.pendingUserPrompt, phase, timestamp: now - 1 });
+      }
+
+      // Add assistant response
+      if (s.streamingContent) {
+        entries.push({ id: genId(), role: "assistant", content: s.streamingContent, phase, timestamp: now });
+      }
+
+      return {
+        isStreaming: false,
+        streamingContent: "",
+        pendingUserPrompt: null,
+        history: [...s.history, ...entries],
+      };
+    }),
   appendStreamContent: (chunk) =>
     set((s) => ({ streamingContent: s.streamingContent + chunk })),
-  clearStreamContent: () => set({ streamingContent: "", isStreaming: false }),
+  clearStreamContent: () => set({ streamingContent: "", isStreaming: false, pendingUserPrompt: null }),
+
+  history: [],
+  clearHistory: () => set({ history: [] }),
 
   error: null,
   setError: (error) => set({ error }),

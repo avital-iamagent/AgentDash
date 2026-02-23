@@ -28,7 +28,15 @@ export function usePhaseState(phase: PhaseName): UsePhaseStateResult {
           setData(null);
           return;
         }
-        throw new Error(`HTTP ${res.status}`);
+        // Extract the actual error message from the response body
+        let errMsg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          if (body.error) errMsg = body.error;
+        } catch {
+          // ignore parse failure, use default message
+        }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       setData(json);

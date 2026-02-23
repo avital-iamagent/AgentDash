@@ -27,7 +27,7 @@ export function usePrompt(): UsePromptResult {
     if (!text || isStreaming) return;
 
     setError(null);
-    startStreaming();
+    startStreaming(text);
 
     const sent = sendWsMessage({
       type: "prompt",
@@ -49,7 +49,7 @@ export function usePrompt(): UsePromptResult {
     if (!text || isStreaming) return;
 
     setError(null);
-    startStreaming();
+    startStreaming(text);
 
     const sent = sendWsMessage({
       type: "research",

@@ -7,6 +7,12 @@ import Sidebar from "./components/layout/Sidebar";
 import PhaseHeader from "./components/layout/PhaseHeader";
 import PromptBar from "./components/layout/PromptBar";
 import StreamingDisplay from "./components/layout/StreamingDisplay";
+import BrainstormBoard from "./components/phases/BrainstormBoard";
+import ResearchGrid from "./components/phases/ResearchGrid";
+import ArchitectureView from "./components/phases/ArchitectureView";
+import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
+import TaskBoard from "./components/phases/TaskBoard";
+import type { PhaseName } from "./types";
 
 function Dashboard() {
   const activePhase = useAppStore((s) => s.activePhase);
@@ -36,7 +42,7 @@ function Dashboard() {
 
         {/* Phase content area */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <PhaseContentPlaceholder phase={activePhase} />
+          <PhaseContent phase={activePhase} />
         </div>
 
         {/* Streaming response display */}
@@ -49,37 +55,17 @@ function Dashboard() {
   );
 }
 
-/**
- * Placeholder for phase-specific views.
- * Will be replaced with actual phase components in Milestone 5.
- */
-function PhaseContentPlaceholder({ phase }: { phase: string }) {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center animate-fade-up">
-        <div
-          className="w-12 h-12 rounded-xl border-2 mx-auto mb-4 flex items-center justify-center"
-          style={{
-            borderColor: `var(--color-phase-${phase})`,
-            backgroundColor: `color-mix(in srgb, var(--color-phase-${phase}) 8%, transparent)`,
-          }}
-        >
-          <span
-            className="text-lg font-mono font-bold"
-            style={{ color: `var(--color-phase-${phase})` }}
-          >
-            {phase[0].toUpperCase()}
-          </span>
-        </div>
-        <p className="text-ink-muted text-sm">
-          Start by sending a prompt below
-        </p>
-        <p className="text-ink-faint text-xs mt-1 font-mono">
-          Phase views coming in Milestone 5
-        </p>
-      </div>
-    </div>
-  );
+const PHASE_VIEWS: Record<PhaseName, React.ComponentType> = {
+  brainstorm: BrainstormBoard,
+  research: ResearchGrid,
+  architecture: ArchitectureView,
+  environment: EnvironmentChecklist,
+  tasks: TaskBoard,
+};
+
+function PhaseContent({ phase }: { phase: PhaseName }) {
+  const View = PHASE_VIEWS[phase];
+  return <View />;
 }
 
 export default function App() {

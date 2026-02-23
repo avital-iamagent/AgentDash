@@ -40,9 +40,16 @@ stateRoutes.get("/phase/:name/state", async (req, res) => {
       return;
     }
     const raw = await fs.readFile(path.join(dir, ".agentdash", name, "state.json"), "utf-8");
+    const json = JSON.parse(raw);
     const schema = phaseSchemas[name];
-    const parsed = schema.parse(JSON.parse(raw));
-    res.json(parsed);
+    const result = schema.safeParse(json);
+    if (!result.success) {
+      // Log for debugging but still return the raw data — don't block the UI
+      console.warn(`[AgentDash] ${name}/state.json schema warning:`, result.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; "));
+      res.json(json);
+    } else {
+      res.json(result.data);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("ENOENT")) {
