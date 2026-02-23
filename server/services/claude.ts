@@ -61,6 +61,10 @@ export async function* sendPrompt(
         }
       } else if (msg.type === "result") {
         const result = msg as any;
+        // If the result contains text and we got no streaming chunks, send it as content
+        if (typeof result.result === "string" && result.result) {
+          yield { type: "response_chunk" as const, content: result.result };
+        }
         yield {
           type: "response_done" as const,
           subtype: result.subtype,

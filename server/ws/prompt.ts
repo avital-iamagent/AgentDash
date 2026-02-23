@@ -42,9 +42,8 @@ async function streamToClient(
       type: "error",
       message: err instanceof Error ? err.message : String(err),
     });
-  } finally {
-    // Ensure response_done is always sent
     send(ws, { type: "response_done" });
+  } finally {
     inFlight.set(ws, false);
   }
 }

@@ -2,7 +2,11 @@ import { Router } from "express";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import type { RecentProject, RecentProjectsFile } from "../types/index.js";
+
+const execFileAsync = promisify(execFile);
 
 export const projectRoutes = Router();
 
@@ -28,6 +32,57 @@ function setActiveProject(dir: string) {
 }
 
 // --- Helpers ---
+
+/** Path to AgentDash's own .claude/ directory (source of truth for skills/rules) */
+const AGENTDASH_CLAUDE_DIR = path.join(process.cwd(), ".claude");
+
+/**
+ * Scaffold .claude/ directory into a user project so the SDK can find
+ * skills, CLAUDE.md, and rules when running with cwd = projectDir.
+ * Overwrites existing files to keep them in sync with the AgentDash install.
+ */
+async function scaffoldClaudeDir(projectDir: string): Promise<void> {
+  const targetClaude = path.join(projectDir, ".claude");
+
+  // Copy CLAUDE.md
+  const srcClaude = path.join(AGENTDASH_CLAUDE_DIR, "CLAUDE.md");
+  await fs.mkdir(targetClaude, { recursive: true });
+  await fs.copyFile(srcClaude, path.join(targetClaude, "CLAUDE.md"));
+
+  // Copy rules/
+  const srcRules = path.join(AGENTDASH_CLAUDE_DIR, "rules");
+  const targetRules = path.join(targetClaude, "rules");
+  await fs.mkdir(targetRules, { recursive: true });
+  const ruleFiles = await fs.readdir(srcRules);
+  for (const f of ruleFiles) {
+    await fs.copyFile(path.join(srcRules, f), path.join(targetRules, f));
+  }
+
+  // Copy skills/ (each skill is a directory with SKILL.md)
+  const srcSkills = path.join(AGENTDASH_CLAUDE_DIR, "skills");
+  const targetSkills = path.join(targetClaude, "skills");
+  const skillDirs = await fs.readdir(srcSkills);
+  for (const skillDir of skillDirs) {
+    const srcSkillDir = path.join(srcSkills, skillDir);
+    const stat = await fs.stat(srcSkillDir);
+    if (!stat.isDirectory()) continue;
+    const targetSkillDir = path.join(targetSkills, skillDir);
+    await fs.mkdir(targetSkillDir, { recursive: true });
+    const skillFiles = await fs.readdir(srcSkillDir);
+    for (const f of skillFiles) {
+      await fs.copyFile(path.join(srcSkillDir, f), path.join(targetSkillDir, f));
+    }
+  }
+}
+
+/** Expand ~ to home directory and resolve to absolute path */
+function resolvePath(input: string): string {
+  let resolved = input.trim();
+  if (resolved.startsWith("~/") || resolved === "~") {
+    resolved = path.join(os.homedir(), resolved.slice(1));
+  }
+  return path.resolve(resolved);
+}
 
 async function readRecentFile(): Promise<RecentProjectsFile> {
   try {
@@ -86,6 +141,21 @@ projectRoutes.get("/recent", async (_req, res) => {
   res.json(recent);
 });
 
+// GET /api/project/pick-folder — open native macOS Finder dialog
+projectRoutes.get("/pick-folder", async (_req, res) => {
+  try {
+    const { stdout } = await execFileAsync("osascript", [
+      "-e",
+      'POSIX path of (choose folder with prompt "Select project directory")',
+    ]);
+    const dir = stdout.trim().replace(/\/$/, ""); // remove trailing slash
+    res.json({ dir });
+  } catch {
+    // User cancelled the dialog
+    res.json({ dir: null });
+  }
+});
+
 // POST /api/project/open
 projectRoutes.post("/open", async (req, res) => {
   const { dir } = req.body;
@@ -94,14 +164,16 @@ projectRoutes.post("/open", async (req, res) => {
     return;
   }
 
-  const agentdashDir = path.join(dir, ".agentdash");
+  const resolvedDir = resolvePath(dir);
+  const agentdashDir = path.join(resolvedDir, ".agentdash");
   const metaPath = path.join(agentdashDir, "meta.json");
 
   try {
     const metaRaw = await fs.readFile(metaPath, "utf-8");
     const meta = JSON.parse(metaRaw);
-    setActiveProject(dir);
-    await addToRecent(dir, meta.projectName || path.basename(dir));
+    await scaffoldClaudeDir(resolvedDir);
+    setActiveProject(resolvedDir);
+    await addToRecent(resolvedDir, meta.projectName || path.basename(resolvedDir));
     res.json({ ok: true, meta });
   } catch {
     res.status(404).json({ error: "No .agentdash/ found in this directory. Use /api/project/create first." });
@@ -116,8 +188,9 @@ projectRoutes.post("/create", async (req, res) => {
     return;
   }
 
-  const projectName = name || path.basename(dir);
-  const agentdashDir = path.join(dir, ".agentdash");
+  const resolvedDir = resolvePath(dir);
+  const projectName = name || path.basename(resolvedDir);
+  const agentdashDir = path.join(resolvedDir, ".agentdash");
 
   try {
     // Create directory structure
@@ -163,8 +236,9 @@ projectRoutes.post("/create", async (req, res) => {
       // Templates dir might not exist if creating in the same dir
     }
 
-    setActiveProject(dir);
-    await addToRecent(dir, projectName);
+    await scaffoldClaudeDir(resolvedDir);
+    setActiveProject(resolvedDir);
+    await addToRecent(resolvedDir, projectName);
     res.json({ ok: true, meta });
   } catch (err) {
     res.status(500).json({ error: `Failed to create project: ${err instanceof Error ? err.message : String(err)}` });
