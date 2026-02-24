@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppStore } from "./stores/appStore";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useMeta } from "./hooks/usePhaseState";
@@ -18,6 +18,10 @@ import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
 import type { PhaseName } from "./types";
 
+const MIN_STREAM_HEIGHT = 80;
+const MAX_STREAM_HEIGHT_RATIO = 0.75;
+const DEFAULT_STREAM_HEIGHT = 240;
+
 type TabName = "data" | "artifact" | "review" | "notes";
 
 const TABS: { key: TabName; label: string }[] = [
@@ -30,6 +34,37 @@ const TABS: { key: TabName; label: string }[] = [
 function Dashboard() {
   const activePhase = useAppStore((s) => s.activePhase);
   const [activeTab, setActiveTab] = useState<TabName>("data");
+  const [streamPanelHeight, setStreamPanelHeight] = useState(DEFAULT_STREAM_HEIGHT);
+  const hasStreamContent = useAppStore(
+    (s) => s.history.length > 0 || !!s.streamingContent || s.isStreaming || !!s.error
+  );
+
+  function handleDividerMouseDown(e: React.MouseEvent) {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = streamPanelHeight;
+
+    function onMouseMove(ev: MouseEvent) {
+      const delta = startY - ev.clientY; // up = positive = expand stream panel
+      const newHeight = Math.max(
+        MIN_STREAM_HEIGHT,
+        Math.min(window.innerHeight * MAX_STREAM_HEIGHT_RATIO, startHeight + delta)
+      );
+      setStreamPanelHeight(newHeight);
+    }
+
+    function onMouseUp() {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }
 
   // Reset tab to "data" when phase changes
   useEffect(() => {
@@ -101,8 +136,18 @@ function Dashboard() {
           {activeTab === "notes" && <ResearchNotesPanel />}
         </div>
 
+        {/* Draggable divider — only visible when stream panel has content */}
+        {hasStreamContent && (
+          <div
+            className="relative flex items-center justify-center h-2 cursor-row-resize group shrink-0"
+            onMouseDown={handleDividerMouseDown}
+          >
+            <div className="w-10 h-0.5 rounded-full bg-edge group-hover:bg-accent/50 transition-colors" />
+          </div>
+        )}
+
         {/* Streaming response display */}
-        <StreamingDisplay />
+        <StreamingDisplay height={hasStreamContent ? streamPanelHeight : undefined} />
 
         {/* Prompt input bar */}
         <PromptBar />

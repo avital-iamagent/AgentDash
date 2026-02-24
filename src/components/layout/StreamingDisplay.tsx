@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import { useAppStore } from "../../stores/appStore";
 import type { HistoryEntry } from "../../stores/appStore";
 
-export default function StreamingDisplay() {
+export default function StreamingDisplay({ height }: { height?: number }) {
   const isStreaming = useAppStore((s) => s.isStreaming);
   const isResearchStream = useAppStore((s) => s.isResearchStream);
   const streamingContent = useAppStore((s) => s.streamingContent);
@@ -26,7 +26,10 @@ export default function StreamingDisplay() {
 
   return (
     <div className="border-t border-edge bg-canvas/50">
-      <div className="max-h-[40vh] overflow-y-auto">
+      <div
+        className="overflow-y-auto"
+        style={height !== undefined ? { height } : { maxHeight: "40vh" }}
+      >
         <div className="px-5 py-4 space-y-4">
           {/* Error message */}
           {error && (
