@@ -162,18 +162,97 @@ stateRoutes.post("/history", async (req, res) => {
   }
 });
 
-// GET /api/research-notes
+// GET /api/research-notes — aggregates notes from all phase dirs
 stateRoutes.get("/research-notes", async (_req, res) => {
   try {
     const dir = requireProject();
-    const notesDir = path.join(dir, ".agentdash", "research-notes");
-    const files = await fs.readdir(notesDir);
-    const notes = files.filter((f) => f.endsWith(".md")).sort().reverse();
-    res.json({ notes });
+    const allNotes: string[] = [];
+    const phases = ["brainstorm", "research", "architecture", "environment", "tasks"];
+    for (const phase of phases) {
+      const notesDir = path.join(dir, ".agentdash", phase, "research-notes");
+      try {
+        const files = await fs.readdir(notesDir);
+        for (const f of files) {
+          if (f.endsWith(".md")) {
+            allNotes.push(`${phase}/${f}`);
+          }
+        }
+      } catch {
+        // directory doesn't exist for this phase — skip
+      }
+    }
+    allNotes.sort().reverse();
+    res.json({ notes: allNotes });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message === "No project is currently open") {
+      res.status(400).json({ error: message });
+    } else {
+      res.status(500).json({ error: message });
+    }
+  }
+});
+
+// POST /api/research-notes — save a note to a specific phase
+stateRoutes.post("/research-notes", async (req, res) => {
+  try {
+    const dir = requireProject();
+    const { phase, question, content } = req.body;
+
+    const validPhases = ["brainstorm", "research", "architecture", "environment", "tasks"];
+    if (!phase || !validPhases.includes(phase)) {
+      res.status(400).json({ error: "Invalid phase" });
+      return;
+    }
+    if (!content || typeof content !== "string") {
+      res.status(400).json({ error: "Content is required" });
+      return;
+    }
+
+    // Generate filename: <timestamp>-<slug>.md
+    const now = new Date();
+    const ts = now.toISOString().replace(/:/g, "-").replace(/\.\d+Z$/, "");
+    const slug = (typeof question === "string" && question.trim()
+      ? question.trim()
+      : "research-note"
+    ).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
+    const filename = `${ts}-${slug}.md`;
+
+    const notesDir = path.join(dir, ".agentdash", phase, "research-notes");
+    await fs.mkdir(notesDir, { recursive: true });
+
+    const header = question ? `# ${question}\n\n` : "";
+    await fs.writeFile(path.join(notesDir, filename), header + content);
+    res.json({ ok: true, filename: `${phase}/${filename}` });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: message });
+  }
+});
+
+// GET /api/research-notes/:phase/:filename
+stateRoutes.get("/research-notes/:phase/:filename", async (req, res) => {
+  try {
+    const dir = requireProject();
+    const { phase, filename } = req.params;
+
+    const validPhases = ["brainstorm", "research", "architecture", "environment", "tasks"];
+    if (!validPhases.includes(phase)) {
+      res.status(400).json({ error: "Invalid phase" });
+      return;
+    }
+    if (!filename.endsWith(".md") || filename.includes("/") || filename.includes("..")) {
+      res.status(400).json({ error: "Invalid filename" });
+      return;
+    }
+
+    const notePath = path.join(dir, ".agentdash", phase, "research-notes", filename);
+    const content = await fs.readFile(notePath, "utf-8");
+    res.json({ filename, phase, content });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("ENOENT")) {
-      res.json({ notes: [] });
+      res.status(404).json({ error: "Note not found" });
     } else {
       res.status(500).json({ error: message });
     }

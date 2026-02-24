@@ -14,14 +14,17 @@ import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
 import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
+import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
+import ResearchSaveModal from "./components/notes/ResearchSaveModal";
 import type { PhaseName } from "./types";
 
-type TabName = "data" | "artifact" | "review";
+type TabName = "data" | "artifact" | "review" | "notes";
 
 const TABS: { key: TabName; label: string }[] = [
   { key: "data", label: "Data" },
   { key: "artifact", label: "Artifact" },
   { key: "review", label: "Review" },
+  { key: "notes", label: "Notes" },
 ];
 
 function Dashboard() {
@@ -66,22 +69,23 @@ function Dashboard() {
         <div className="px-6 flex gap-1 border-b border-edge bg-panel/30">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.key;
+            const tabColor = tab.key === "notes"
+              ? "var(--color-phase-research)"
+              : `var(--color-phase-${activePhase})`;
             return (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className="relative px-3 py-2 text-sm font-medium transition-colors"
                 style={{
-                  color: isActive
-                    ? `var(--color-phase-${activePhase})`
-                    : "var(--color-ink-muted)",
+                  color: isActive ? tabColor : "var(--color-ink-muted)",
                 }}
               >
                 {tab.label}
                 {isActive && (
                   <span
                     className="absolute bottom-0 left-0 right-0 h-[2px]"
-                    style={{ backgroundColor: `var(--color-phase-${activePhase})` }}
+                    style={{ backgroundColor: tabColor }}
                   />
                 )}
               </button>
@@ -94,6 +98,7 @@ function Dashboard() {
           {activeTab === "data" && <PhaseContent phase={activePhase} />}
           {activeTab === "artifact" && <ArtifactPreview phase={activePhase} />}
           {activeTab === "review" && <ReviewPanel phase={activePhase} />}
+          {activeTab === "notes" && <ResearchNotesPanel />}
         </div>
 
         {/* Streaming response display */}
@@ -102,6 +107,9 @@ function Dashboard() {
         {/* Prompt input bar */}
         <PromptBar />
       </main>
+
+      {/* Research save modal */}
+      <ResearchSaveModal />
     </div>
   );
 }

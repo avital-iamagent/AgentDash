@@ -73,5 +73,6 @@ function detectPhase(relativePath: string): string | null {
   }
   if (relativePath === "meta.json") return "meta";
   if (relativePath.startsWith("artifacts")) return "artifacts";
+  if (relativePath.startsWith("research-notes")) return "research-notes";
   return null;
 }

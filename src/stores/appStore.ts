@@ -30,9 +30,10 @@ interface AppState {
 
   // Streaming state
   isStreaming: boolean;
+  isResearchStream: boolean;
   streamingContent: string;
   pendingUserPrompt: string | null;
-  startStreaming: (userPrompt?: string) => void;
+  startStreaming: (userPrompt?: string, isResearch?: boolean) => void;
   stopStreaming: () => void;
   appendStreamContent: (chunk: string) => void;
   clearStreamContent: () => void;
@@ -41,6 +42,13 @@ interface AppState {
   history: HistoryEntry[];
   loadHistory: () => Promise<void>;
   clearHistory: () => void;
+
+  // Research mode & save modal
+  researchMode: boolean;
+  setResearchMode: (on: boolean) => void;
+  researchResult: { question: string; content: string } | null;
+  showResearchSave: boolean;
+  dismissResearchSave: () => void;
 
   // Error state
   error: string | null;
@@ -77,6 +85,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       streamingContent: "",
       pendingUserPrompt: null,
       history: [],
+      isResearchStream: false,
+      researchMode: false,
+      researchResult: null,
+      showResearchSave: false,
       error: null,
     }),
 
@@ -95,9 +107,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   setWsConnected: (connected) => set({ wsConnected: connected }),
 
   isStreaming: false,
+  isResearchStream: false,
   streamingContent: "",
   pendingUserPrompt: null,
-  startStreaming: (userPrompt) => set({ isStreaming: true, streamingContent: "", pendingUserPrompt: userPrompt ?? null }),
+  startStreaming: (userPrompt, isResearch) => set({
+    isStreaming: true,
+    isResearchStream: isResearch ?? false,
+    streamingContent: "",
+    pendingUserPrompt: userPrompt ?? null,
+  }),
   stopStreaming: () => {
     const s = get();
     const entries: HistoryEntry[] = [];
@@ -112,11 +130,22 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     const newHistory = [...s.history, ...entries];
+
+    // If this was a research stream with content, show the save modal
+    const researchUpdate = s.isResearchStream && s.streamingContent
+      ? {
+          researchResult: { question: s.pendingUserPrompt || "", content: s.streamingContent },
+          showResearchSave: true,
+        }
+      : {};
+
     set({
       isStreaming: false,
+      isResearchStream: false,
       streamingContent: "",
       pendingUserPrompt: null,
       history: newHistory,
+      ...researchUpdate,
     });
 
     persistHistory(newHistory);
@@ -146,6 +175,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ history: [] });
     persistHistory([]);
   },
+
+  researchMode: false,
+  setResearchMode: (on) => set({ researchMode: on }),
+  researchResult: null,
+  showResearchSave: false,
+  dismissResearchSave: () => set({ researchResult: null, showResearchSave: false }),
 
   error: null,
   setError: (error) => set({ error }),

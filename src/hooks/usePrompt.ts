@@ -49,7 +49,7 @@ export function usePrompt(): UsePromptResult {
     if (!text || isStreaming) return;
 
     setError(null);
-    startStreaming(text);
+    startStreaming(text, true);
 
     const sent = sendWsMessage({
       type: "research",

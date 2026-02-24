@@ -113,8 +113,19 @@ export async function* runResearch(
         ) {
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
+      } else if (msg.type === "assistant") {
+        const text = (msg as any).message?.content
+          ?.filter((b: any) => b.type === "text")
+          .map((b: any) => b.text)
+          .join("");
+        if (text) {
+          yield { type: "assistant_message" as const, content: text };
+        }
       } else if (msg.type === "result") {
         const result = msg as any;
+        if (typeof result.result === "string" && result.result) {
+          yield { type: "response_chunk" as const, content: result.result };
+        }
         yield {
           type: "response_done" as const,
           subtype: result.subtype,

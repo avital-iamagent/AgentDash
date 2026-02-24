@@ -6,6 +6,8 @@ export default function Sidebar() {
   const projectName = useAppStore((s) => s.projectName);
   const wsConnected = useAppStore((s) => s.wsConnected);
   const clearProject = useAppStore((s) => s.clearProject);
+  const researchMode = useAppStore((s) => s.researchMode);
+  const setResearchMode = useAppStore((s) => s.setResearchMode);
 
   return (
     <aside className="w-56 h-full bg-panel border-r border-edge flex flex-col shrink-0">
@@ -29,6 +31,24 @@ export default function Sidebar() {
           Phases
         </div>
         <PhaseStepper />
+      </div>
+
+      {/* Research toggle */}
+      <div className="px-4 py-2.5 border-t border-edge">
+        <button
+          onClick={() => setResearchMode(!researchMode)}
+          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${
+            researchMode
+              ? "bg-phase-research/10 text-phase-research border-l-2 border-phase-research"
+              : "text-ink-muted hover:text-phase-research hover:bg-phase-research/5"
+          }`}
+        >
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+          </svg>
+          Research
+        </button>
       </div>
 
       {/* Git status */}

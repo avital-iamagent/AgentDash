@@ -5,6 +5,7 @@ import type { HistoryEntry } from "../../stores/appStore";
 
 export default function StreamingDisplay() {
   const isStreaming = useAppStore((s) => s.isStreaming);
+  const isResearchStream = useAppStore((s) => s.isResearchStream);
   const streamingContent = useAppStore((s) => s.streamingContent);
   const pendingUserPrompt = useAppStore((s) => s.pendingUserPrompt);
   const error = useAppStore((s) => s.error);
@@ -67,13 +68,17 @@ export default function StreamingDisplay() {
 
           {/* Streaming indicator */}
           {isStreaming && !streamingContent && (
-            <div className="flex items-center gap-2 text-ink-muted text-sm animate-fade-up">
+            <div className={`flex items-center gap-2 text-sm animate-fade-up ${
+              isResearchStream ? "text-phase-research" : "text-ink-muted"
+            }`}>
               <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-ink-faint" style={{ animation: "pulse-dot 1.2s ease-in-out infinite" }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-ink-faint" style={{ animation: "pulse-dot 1.2s ease-in-out 0.2s infinite" }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-ink-faint" style={{ animation: "pulse-dot 1.2s ease-in-out 0.4s infinite" }} />
+                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out infinite" }} />
+                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.2s infinite" }} />
+                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.4s infinite" }} />
               </div>
-              <span className="font-mono text-xs">Claude is thinking...</span>
+              <span className="font-mono text-xs">
+                {isResearchStream ? "Researching..." : "Claude is thinking..."}
+              </span>
             </div>
           )}
 
