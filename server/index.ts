@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
+import { createServer as createHttpsServer } from "https";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { WebSocketServer } from "ws";
 import { stateRoutes } from "./routes/state.js";
 import { projectRoutes, setOnProjectOpen } from "./routes/project.js";
@@ -25,7 +29,16 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: err.message });
 });
 
-const server = createServer(app);
+// Use HTTPS if local certs exist, otherwise fall back to HTTP
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const certDir = path.resolve(__dirname, "..", ".certs");
+const certPath = path.join(certDir, "cert.pem");
+const keyPath = path.join(certDir, "key.pem");
+const hasCerts = fs.existsSync(certPath) && fs.existsSync(keyPath);
+
+const server = hasCerts
+  ? createHttpsServer({ cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }, app)
+  : createServer(app);
 const wss = new WebSocketServer({ server, path: "/ws" });
 
 // WebSocket handlers
@@ -41,8 +54,9 @@ wss.on("error", (err) => {
 });
 
 const PORT = process.env.PORT || 3001;
+const proto = hasCerts ? "https" : "http";
 server.listen(Number(PORT), "0.0.0.0", () => {
-  console.log(`AgentDash server running on http://0.0.0.0:${PORT}`);
+  console.log(`AgentDash server running on ${proto}://0.0.0.0:${PORT}`);
 });
 
 export { server, wss };

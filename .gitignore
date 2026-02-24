@@ -12,6 +12,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Local TLS certs
+.certs/
+
 # AgentDash state is tracked (it's the whole point)
 # But research notes are optional
 # .agentdash/research-notes/  <- uncomment to exclude
