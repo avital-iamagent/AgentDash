@@ -8,6 +8,7 @@ interface CardProps {
   highlight?: boolean;
   children?: ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 export default function Card({
@@ -18,12 +19,14 @@ export default function Card({
   highlight,
   children,
   className = "",
+  onClick,
 }: CardProps) {
   return (
     <div
       className={`rounded-lg border bg-raised p-4 transition-colors ${
         highlight ? "ring-1" : ""
-      } ${className}`}
+      } ${onClick ? "cursor-pointer hover:border-ink-faint" : ""} ${className}`}
+      onClick={onClick}
       style={{
         borderColor: highlight && accentColor
           ? accentColor

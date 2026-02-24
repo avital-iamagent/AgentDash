@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { usePhaseState } from "../../hooks/usePhaseState";
 import Card from "../shared/Card";
 import PhaseEmptyState from "../shared/PhaseEmptyState";
@@ -17,6 +18,7 @@ const CREATOR_LABELS: Record<string, string> = {
 export default function BrainstormBoard() {
   const { data, loading, error } = usePhaseState("brainstorm");
   const state = data as BrainstormState | null;
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorState message={error} />;
@@ -56,25 +58,39 @@ export default function BrainstormBoard() {
 
           {/* Cards grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {group.cards.map((card) => (
-              <Card
-                key={card.id}
-                title={card.text}
-                tags={card.tags}
-                status={{
-                  label: card.status,
-                  color: STATUS_COLORS[card.status] ?? "var(--color-ink-muted)",
-                }}
-                accentColor={group.color}
-              >
-                {card.notes && (
-                  <p className="text-xs text-ink-muted mt-1">{card.notes}</p>
-                )}
-                <div className="mt-2 text-[10px] font-mono text-ink-faint">
-                  {CREATOR_LABELS[card.createdBy] ?? card.createdBy}
-                </div>
-              </Card>
-            ))}
+            {group.cards.map((card) => {
+              const isExpanded = expandedId === card.id;
+              const hasNotes = !!card.notes;
+              return (
+                <Card
+                  key={card.id}
+                  title={card.text}
+                  tags={card.tags}
+                  status={{
+                    label: card.status,
+                    color: STATUS_COLORS[card.status] ?? "var(--color-ink-muted)",
+                  }}
+                  accentColor={group.color}
+                  onClick={hasNotes ? () => setExpandedId(isExpanded ? null : card.id) : undefined}
+                >
+                  {card.notes && (
+                    <p className={`text-xs text-ink-muted mt-1 ${isExpanded ? "" : "line-clamp-2"}`}>
+                      {card.notes}
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-ink-faint">
+                      {CREATOR_LABELS[card.createdBy] ?? card.createdBy}
+                    </span>
+                    {hasNotes && (
+                      <span className="text-[10px] font-mono text-ink-faint">
+                        {isExpanded ? "▲ less" : "▼ more"}
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         </div>
       ))}

@@ -40,6 +40,7 @@ export async function* sendPrompt(
       },
     });
 
+    let receivedChunks = false;
     for await (const msg of stream) {
       if (msg.type === "stream_event") {
         const event = (msg as any).event;
@@ -48,6 +49,7 @@ export async function* sendPrompt(
           event?.delta?.type === "text_delta" &&
           event.delta.text
         ) {
+          receivedChunks = true;
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
       } else if (msg.type === "assistant") {
@@ -61,8 +63,8 @@ export async function* sendPrompt(
         }
       } else if (msg.type === "result") {
         const result = msg as any;
-        // If the result contains text and we got no streaming chunks, send it as content
-        if (typeof result.result === "string" && result.result) {
+        // Only use result.result as fallback when no streaming chunks were received
+        if (!receivedChunks && typeof result.result === "string" && result.result) {
           yield { type: "response_chunk" as const, content: result.result };
         }
         yield {
@@ -103,6 +105,7 @@ export async function* runResearch(
       },
     });
 
+    let receivedChunks = false;
     for await (const msg of stream) {
       if (msg.type === "stream_event") {
         const event = (msg as any).event;
@@ -111,6 +114,7 @@ export async function* runResearch(
           event?.delta?.type === "text_delta" &&
           event.delta.text
         ) {
+          receivedChunks = true;
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
       } else if (msg.type === "assistant") {
@@ -123,7 +127,8 @@ export async function* runResearch(
         }
       } else if (msg.type === "result") {
         const result = msg as any;
-        if (typeof result.result === "string" && result.result) {
+        // Only use result.result as fallback when no streaming chunks were received
+        if (!receivedChunks && typeof result.result === "string" && result.result) {
           yield { type: "response_chunk" as const, content: result.result };
         }
         yield {
