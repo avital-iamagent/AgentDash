@@ -6,7 +6,6 @@ const PHASE_SKILLS: Record<string, string> = {
   architecture: "/phase-3-architecture",
   environment: "/phase-4-environment",
   tasks: "/phase-5-tasks",
-  coding: "/phase-6-coding",
 };
 
 /**

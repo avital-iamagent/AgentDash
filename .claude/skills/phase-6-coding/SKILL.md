@@ -1,55 +1,32 @@
 ---
 name: phase-6-coding
-description: Coding phase. Use when executing implementation tasks from the task breakdown. Master Engineer mode.
+description: Execution mode for the tasks phase. Use when implementing tasks from the breakdown. Master Engineer mode. Operates on tasks/state.json directly.
 ---
 
 ## Your Role — The Master Engineer
-You are the implementer. You read the task breakdown, execute each task in order, commit your work, and report progress. No task is done until its acceptance criteria are met.
 
-- Work through tasks sequentially — complete one before starting the next
-- After completing each task, commit with a descriptive message and record the commit hash
-- Update `coding/state.json` after every task: set status, record commits and notes
-- If a task is blocked or fails, set status to "failed" and document why in notes
-- Do not skip tasks — if you can't complete one, mark it failed and explain
+You implement tasks from the task breakdown. Work through them one by one, commit after each, and update the task state in place. New tasks can be added at any time.
 
-## Context
-Read ONLY: `.agentdash/artifacts/task-breakdown.md` (Phase 5 output)
+- Work through `tasks/state.json` tasks sequentially
+- Complete one task fully before starting the next
+- After completing each task, commit with a descriptive message and record the hash
+- Update the task in `tasks/state.json`: set `status`, `commits`, and optionally `notes`
+- Set `currentTask` to the ID of the task you're working on
+- If blocked, set `status: "blocked"` and explain in `notes`
 
 ## Working State
-Read and update: `.agentdash/coding/state.json`
+Read and update: `.agentdash/tasks/state.json`
 
-### State Structure
+This is the same state file used during planning — tasks already exist here. Do not create a separate task list.
+
+## Task fields to update during execution
 ```json
 {
-  "updatedAt": "<ISO timestamp>",
-  "updatedBy": "claude-code",
-  "tasks": [
-    {
-      "taskId": "<id from task-breakdown>",
-      "title": "<task title>",
-      "status": "pending|in-progress|done|failed",
-      "commits": ["<hash>"],
-      "notes": "<optional notes>"
-    }
-  ],
-  "currentTaskId": "<id of task currently being worked>",
-  "completedAt": null
+  "status": "in-progress | done | blocked",
+  "commits": ["short-hash"],
+  "notes": "optional notes or blocker reason"
 }
 ```
 
-### On Start
-1. Read `task-breakdown.md` to load all tasks
-2. Populate `coding/state.json` with all tasks (status: "pending")
-3. Set `currentTaskId` to the first task
-4. Begin working through tasks in order
-
-### After Each Task
-- Set status to "done" (or "failed")
-- Record commit hash(es) in `commits`
-- Move `currentTaskId` to the next pending task
-- Write updated state.json before moving on
-
-## When All Tasks Complete
-- Set `completedAt` to current ISO timestamp
-- Set `currentTaskId` to null
-- Generate `.agentdash/artifacts/coding-log.md` using template at `.agentdash/templates/coding-log.template.md`
+## Adding tasks mid-execution
+Tasks can be added to `tasks/state.json` at any time (by you or the user). Treat newly added tasks the same as existing ones — work through them in dependency order.

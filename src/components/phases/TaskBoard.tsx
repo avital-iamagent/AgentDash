@@ -98,6 +98,11 @@ export default function TaskBoard() {
                   {/* Description */}
                   <p className="text-xs text-ink-muted mt-1">{task.description}</p>
 
+                  {/* Implementation notes */}
+                  {task.notes && (
+                    <p className="text-xs text-ink-faint mt-1 italic">{task.notes}</p>
+                  )}
+
                   {/* Acceptance criteria */}
                   {task.acceptanceCriteria && task.acceptanceCriteria.length > 0 && (
                     <ul className="mt-2 space-y-0.5">
@@ -108,6 +113,24 @@ export default function TaskBoard() {
                         </li>
                       ))}
                     </ul>
+                  )}
+
+                  {/* Commit hashes */}
+                  {task.commits && task.commits.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {task.commits.map((hash) => (
+                        <span
+                          key={hash}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono"
+                          style={{
+                            color: "var(--color-phase-coding)",
+                            backgroundColor: "color-mix(in srgb, var(--color-phase-coding) 10%, transparent)",
+                          }}
+                        >
+                          {hash.slice(0, 7)}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </Card>
               );

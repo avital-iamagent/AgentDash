@@ -39,7 +39,6 @@ const PHASES: { name: PhaseName; label: string; personality: string }[] = [
   { name: "architecture", label: "Architecture", personality: "Pragmatic Engineer" },
   { name: "environment", label: "Environment", personality: "Meticulous Ops" },
   { name: "tasks", label: "Tasks", personality: "Clear-Headed PM" },
-  { name: "coding", label: "Coding", personality: "Master Engineer" },
 ];
 
 const PHASE_COLOR_CLASSES: Record<PhaseName, { dot: string; text: string; line: string }> = {
@@ -48,7 +47,6 @@ const PHASE_COLOR_CLASSES: Record<PhaseName, { dot: string; text: string; line: 
   architecture: { dot: "bg-phase-architecture", text: "text-phase-architecture", line: "bg-phase-architecture" },
   environment: { dot: "bg-phase-environment", text: "text-phase-environment", line: "bg-phase-environment" },
   tasks: { dot: "bg-phase-tasks", text: "text-phase-tasks", line: "bg-phase-tasks" },
-  coding: { dot: "bg-phase-coding", text: "text-phase-coding", line: "bg-phase-coding" },
 };
 
 function getPhaseStatus(meta: { phases: Record<string, { status: PhaseStatus }> } | null, phase: PhaseName): PhaseStatus {

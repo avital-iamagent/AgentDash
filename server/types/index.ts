@@ -8,7 +8,7 @@ export interface RecentProjectsFile {
   projects: RecentProject[];
 }
 
-export const PHASE_NAMES = ["brainstorm", "research", "architecture", "environment", "tasks", "coding"] as const;
+export const PHASE_NAMES = ["brainstorm", "research", "architecture", "environment", "tasks"] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
 export function isValidPhase(name: string): name is PhaseName {
