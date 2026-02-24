@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "./stores/appStore";
 import { useWebSocket } from "./hooks/useWebSocket";
+import { useTTS } from "./hooks/useTTS";
 import { useMeta } from "./hooks/usePhaseState";
 import StartScreen from "./components/start/StartScreen";
 import Sidebar from "./components/layout/Sidebar";
@@ -16,6 +17,7 @@ import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
 import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
+import QuestionForm from "./components/layout/QuestionForm";
 import type { PhaseName } from "./types";
 
 const MIN_STREAM_HEIGHT = 80;
@@ -73,6 +75,7 @@ function Dashboard() {
 
   // Initialize WebSocket connection
   useWebSocket();
+  useTTS();
 
   // Auto-refresh meta on file changes
   const { data: metaData } = useMeta();
@@ -148,6 +151,9 @@ function Dashboard() {
 
         {/* Streaming response display */}
         <StreamingDisplay height={hasStreamContent ? streamPanelHeight : undefined} />
+
+        {/* Structured question form — shown when Claude asks numbered questions */}
+        <QuestionForm />
 
         {/* Prompt input bar */}
         <PromptBar />

@@ -9,6 +9,7 @@ import { WebSocketServer } from "ws";
 import { stateRoutes } from "./routes/state.js";
 import { projectRoutes, setOnProjectOpen } from "./routes/project.js";
 import { gitRoutes } from "./routes/git.js";
+import { ttsRoutes } from "./routes/tts.js";
 import { setupPromptHandler } from "./ws/prompt.js";
 import { setupFileWatcher, startWatching } from "./ws/filewatch.js";
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use("/api/project", projectRoutes);
 app.use("/api", stateRoutes);
 app.use("/api/git", gitRoutes);
+app.use("/api/tts", ttsRoutes);
 
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

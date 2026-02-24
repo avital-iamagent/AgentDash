@@ -43,6 +43,14 @@ interface AppState {
   loadHistory: () => Promise<void>;
   clearHistory: () => void;
 
+  // TTS (ElevenLabs) toggle
+  ttsEnabled: boolean;
+  setTtsEnabled: (on: boolean) => void;
+
+  // Structured follow-up questions parsed from assistant responses
+  pendingQuestions: string[] | null;
+  setPendingQuestions: (questions: string[] | null) => void;
+
   // Research mode & save modal
   researchMode: boolean;
   setResearchMode: (on: boolean) => void;
@@ -53,6 +61,19 @@ interface AppState {
   // Error state
   error: string | null;
   setError: (error: string | null) => void;
+}
+
+/** Extract numbered questions from assistant response text */
+function extractQuestions(text: string): string[] | null {
+  const questions: string[] = [];
+  for (const line of text.split("\n")) {
+    const match = line.match(/^\s*\d+\.\s+(.+)$/);
+    if (match) {
+      const content = match[1].trim().replace(/^\*\*|\*\*$/g, "");
+      if (content.includes("?")) questions.push(content);
+    }
+  }
+  return questions.length >= 2 ? questions : null;
 }
 
 let nextId = 1;
@@ -84,6 +105,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       isStreaming: false,
       streamingContent: "",
       pendingUserPrompt: null,
+      pendingQuestions: null,
       history: [],
       isResearchStream: false,
       researchMode: false,
@@ -115,6 +137,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     isResearchStream: isResearch ?? false,
     streamingContent: "",
     pendingUserPrompt: userPrompt ?? null,
+    pendingQuestions: null,
   }),
   stopStreaming: () => {
     const s = get();
@@ -139,12 +162,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       : {};
 
+    const questions = !s.isResearchStream ? extractQuestions(s.streamingContent) : null;
+
     set({
       isStreaming: false,
       isResearchStream: false,
       streamingContent: "",
       pendingUserPrompt: null,
       history: newHistory,
+      pendingQuestions: questions,
       ...researchUpdate,
     });
 
@@ -175,6 +201,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ history: [] });
     persistHistory([]);
   },
+
+  ttsEnabled: false,
+  setTtsEnabled: (on) => set({ ttsEnabled: on }),
+
+  pendingQuestions: null,
+  setPendingQuestions: (questions) => set({ pendingQuestions: questions }),
 
   researchMode: false,
   setResearchMode: (on) => set({ researchMode: on }),

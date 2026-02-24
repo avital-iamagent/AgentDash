@@ -1,6 +1,37 @@
 import { useAppStore } from "../../stores/appStore";
 import type { PhaseName, PhaseStatus } from "../../types";
 
+function TTSToggle() {
+  const ttsEnabled = useAppStore((s) => s.ttsEnabled);
+  const setTtsEnabled = useAppStore((s) => s.setTtsEnabled);
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); setTtsEnabled(!ttsEnabled); }}
+      title={ttsEnabled ? "Mute voice" : "Enable voice (ElevenLabs)"}
+      className={`shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors ${
+        ttsEnabled
+          ? "text-phase-brainstorm"
+          : "text-ink-faint hover:text-ink-muted"
+      }`}
+    >
+      {ttsEnabled ? (
+        // Talking head — animated mouth
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <path d="M10 2a6 6 0 00-6 6v1a6 6 0 0012 0V8a6 6 0 00-6-6zm-2 9a2 2 0 104 0H8z" />
+          <path d="M5 17a1 1 0 000 2h10a1 1 0 000-2H5z" />
+        </svg>
+      ) : (
+        // Muted head
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <path fillRule="evenodd" d="M10 2a6 6 0 00-6 6v1a6 6 0 0012 0V8a6 6 0 00-6-6zm0 10a2 2 0 01-2-2h4a2 2 0 01-2 2z" clipRule="evenodd" />
+          <path d="M5 17a1 1 0 000 2h10a1 1 0 000-2H5z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 const PHASES: { name: PhaseName; label: string; personality: string }[] = [
   { name: "brainstorm", label: "Brainstorm", personality: "Devil's Advocate" },
   { name: "research", label: "Research", personality: "Skeptical Analyst" },
@@ -89,8 +120,11 @@ export default function PhaseStepper() {
                   {phase.label}
                 </div>
                 {isActive && (
-                  <div className="text-[11px] text-ink-faint mt-0.5 font-mono">
-                    {phase.personality}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[11px] text-ink-faint font-mono">
+                      {phase.personality}
+                    </span>
+                    {phase.name === "brainstorm" && <TTSToggle />}
                   </div>
                 )}
               </div>

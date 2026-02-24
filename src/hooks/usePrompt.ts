@@ -21,12 +21,14 @@ export function usePrompt(): UsePromptResult {
   const startStreaming = useAppStore((s) => s.startStreaming);
   const stopStreaming = useAppStore((s) => s.stopStreaming);
   const setError = useAppStore((s) => s.setError);
+  const setPendingQuestions = useAppStore((s) => s.setPendingQuestions);
 
   const submit = useCallback(() => {
     const text = prompt.trim();
     if (!text || isStreaming) return;
 
     setError(null);
+    setPendingQuestions(null);
     startStreaming(text);
 
     const sent = sendWsMessage({
