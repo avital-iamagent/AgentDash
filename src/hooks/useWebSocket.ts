@@ -68,6 +68,21 @@ function handleMessage(event: MessageEvent) {
       store.stopStreaming();
       break;
 
+    case "permission_request": {
+      const { requestId, toolName, input } = msg as {
+        requestId: string;
+        toolName: string;
+        input: Record<string, unknown>;
+      };
+      // If auto-approve is on, respond immediately without showing the modal
+      if (store.autoApprovePermissions) {
+        sendWsMessage({ type: "permission_response", requestId, allowed: true });
+      } else {
+        store.setPermissionRequest({ requestId, toolName, input });
+      }
+      break;
+    }
+
     case "error":
       store.setError(
         typeof msg.message === "string" ? msg.message : "An error occurred"

@@ -15,8 +15,10 @@ import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
 import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
+import CodingBoard from "./components/phases/CodingBoard";
 import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
+import PermissionModal from "./components/shared/PermissionModal";
 import QuestionForm from "./components/layout/QuestionForm";
 import type { PhaseName } from "./types";
 
@@ -28,9 +30,9 @@ type TabName = "data" | "artifact" | "review" | "notes";
 
 const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
   { key: "data", label: "Board" },
-  { key: "artifact", label: "Handoff", hideForPhases: ["tasks"] },
-  { key: "review", label: "Validate", hideForPhases: ["tasks"] },
-  { key: "notes", label: "Research Notes", hideForPhases: ["tasks"] },
+  { key: "artifact", label: "Handoff", hideForPhases: ["tasks", "coding"] },
+  { key: "review", label: "Validate", hideForPhases: ["tasks", "coding"] },
+  { key: "notes", label: "Research Notes", hideForPhases: ["tasks", "coding"] },
 ];
 
 function Dashboard() {
@@ -161,6 +163,9 @@ function Dashboard() {
 
       {/* Research save modal */}
       <ResearchSaveModal />
+
+      {/* Permission request modal */}
+      <PermissionModal />
     </div>
   );
 }
@@ -171,6 +176,7 @@ const PHASE_VIEWS: Record<PhaseName, React.ComponentType> = {
   architecture: ArchitectureView,
   environment: EnvironmentChecklist,
   tasks: TaskBoard,
+  coding: CodingBoard,
 };
 
 function PhaseContent({ phase }: { phase: PhaseName }) {

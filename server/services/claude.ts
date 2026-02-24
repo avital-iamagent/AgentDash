@@ -6,6 +6,7 @@ const PHASE_SKILLS: Record<string, string> = {
   architecture: "/phase-3-architecture",
   environment: "/phase-4-environment",
   tasks: "/phase-5-tasks",
+  coding: "/phase-6-coding",
 };
 
 /**
@@ -23,10 +24,20 @@ const PHASE_SKILLS: Record<string, string> = {
 export async function* sendPrompt(
   userPrompt: string,
   phase: string,
-  projectDir: string
+  projectDir: string,
+  onPermissionRequest?: (toolName: string, input: Record<string, unknown>) => Promise<boolean>
 ) {
   const skillPrefix = PHASE_SKILLS[phase];
   if (!skillPrefix) throw new Error(`Unknown phase: ${phase}`);
+
+  const canUseTool = onPermissionRequest
+    ? async (toolName: string, input: Record<string, unknown>) => {
+        const allowed = await onPermissionRequest(toolName, input);
+        return allowed
+          ? { behavior: "allow" as const, updatedInput: input }
+          : { behavior: "deny" as const, message: "Permission denied by user" };
+      }
+    : undefined;
 
   try {
     const stream = query({
@@ -37,6 +48,7 @@ export async function* sendPrompt(
         settingSources: ["project"],
         includePartialMessages: true,
         allowedTools: ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
+        ...(canUseTool && { canUseTool }),
       },
     });
 

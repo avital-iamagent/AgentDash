@@ -7,6 +7,7 @@ const PHASE_CONFIG: Record<PhaseName, { letter: string; noun: string; action: st
   architecture: { letter: "A", noun: "architecture",    action: "start designing" },
   environment:  { letter: "E", noun: "checklist items", action: "start environment setup" },
   tasks:        { letter: "T", noun: "tasks",           action: "break down tasks" },
+  coding:       { letter: "C", noun: "tasks",           action: "start coding" },
 };
 
 interface PhaseEmptyStateProps {

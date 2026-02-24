@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { sendPrompt, runResearch, runReview } from "../services/claude.js";
 import { getActiveProjectDir } from "../routes/project.js";
+import { askClientPermission, resolvePermission } from "../services/permissions.js";
 
 interface PromptMessage {
   type: "prompt";
@@ -18,7 +19,13 @@ interface ReviewMessage {
   phase: string;
 }
 
-type IncomingMessage = PromptMessage | ResearchMessage | ReviewMessage;
+interface PermissionResponseMessage {
+  type: "permission_response";
+  requestId: string;
+  allowed: boolean;
+}
+
+type IncomingMessage = PromptMessage | ResearchMessage | ReviewMessage | PermissionResponseMessage;
 
 // Track in-flight requests per client
 const inFlight = new WeakMap<WebSocket, boolean>();
@@ -62,6 +69,12 @@ export function setupPromptHandler(wss: WebSocketServer) {
         return;
       }
 
+      // Permission responses must bypass the inFlight guard — they unblock an in-progress stream
+      if (msg.type === "permission_response") {
+        resolvePermission(msg.requestId, msg.allowed);
+        return;
+      }
+
       // Reject concurrent prompts
       if (inFlight.get(ws)) {
         send(ws, {
@@ -79,9 +92,12 @@ export function setupPromptHandler(wss: WebSocketServer) {
 
       inFlight.set(ws, true);
 
+      const onPermissionRequest = (toolName: string, input: Record<string, unknown>) =>
+        askClientPermission(ws, toolName, input);
+
       switch (msg.type) {
         case "prompt":
-          await streamToClient(ws, sendPrompt(msg.text, msg.phase, projectDir));
+          await streamToClient(ws, sendPrompt(msg.text, msg.phase, projectDir, onPermissionRequest));
           break;
 
         case "research":

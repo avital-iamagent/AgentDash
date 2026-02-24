@@ -1,4 +1,5 @@
 import { useAppStore } from "../../stores/appStore";
+import { sendWsMessage } from "../../hooks/useWebSocket";
 import type { PhaseName, PhaseStatus } from "../../types";
 
 function TTSToggle() {
@@ -38,6 +39,7 @@ const PHASES: { name: PhaseName; label: string; personality: string }[] = [
   { name: "architecture", label: "Architecture", personality: "Pragmatic Engineer" },
   { name: "environment", label: "Environment", personality: "Meticulous Ops" },
   { name: "tasks", label: "Tasks", personality: "Clear-Headed PM" },
+  { name: "coding", label: "Coding", personality: "Master Engineer" },
 ];
 
 const PHASE_COLOR_CLASSES: Record<PhaseName, { dot: string; text: string; line: string }> = {
@@ -46,6 +48,7 @@ const PHASE_COLOR_CLASSES: Record<PhaseName, { dot: string; text: string; line: 
   architecture: { dot: "bg-phase-architecture", text: "text-phase-architecture", line: "bg-phase-architecture" },
   environment: { dot: "bg-phase-environment", text: "text-phase-environment", line: "bg-phase-environment" },
   tasks: { dot: "bg-phase-tasks", text: "text-phase-tasks", line: "bg-phase-tasks" },
+  coding: { dot: "bg-phase-coding", text: "text-phase-coding", line: "bg-phase-coding" },
 };
 
 function getPhaseStatus(meta: { phases: Record<string, { status: PhaseStatus }> } | null, phase: PhaseName): PhaseStatus {
@@ -56,6 +59,23 @@ export default function PhaseStepper() {
   const meta = useAppStore((s) => s.meta);
   const activePhase = useAppStore((s) => s.activePhase);
   const setActivePhase = useAppStore((s) => s.setActivePhase);
+  const history = useAppStore((s) => s.history);
+  const isStreaming = useAppStore((s) => s.isStreaming);
+  const startStreaming = useAppStore((s) => s.startStreaming);
+  const stopStreaming = useAppStore((s) => s.stopStreaming);
+
+  function handlePhaseClick(phaseName: PhaseName) {
+    setActivePhase(phaseName);
+
+    // Auto kick-off if this phase has never been interacted with
+    if (isStreaming) return;
+    const hasHistory = history.some((e) => e.phase === phaseName);
+    if (hasHistory) return;
+
+    startStreaming();
+    const sent = sendWsMessage({ type: "prompt", phase: phaseName, text: "begin" });
+    if (!sent) stopStreaming();
+  }
 
   return (
     <div className="space-y-0 stagger">
@@ -78,7 +98,7 @@ export default function PhaseStepper() {
             )}
 
             <button
-              onClick={() => isClickable && setActivePhase(phase.name)}
+              onClick={() => isClickable && handlePhaseClick(phase.name)}
               disabled={!isClickable}
               className={`relative w-full flex items-start gap-3 px-2 py-2.5 rounded-md text-left transition-all ${
                 isActive

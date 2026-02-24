@@ -40,6 +40,7 @@ interface AppState {
 
   // Message history (persisted to .agentdash/history.json)
   history: HistoryEntry[];
+  historyLoaded: boolean;
   loadHistory: () => Promise<void>;
   clearHistory: () => void;
 
@@ -61,6 +62,12 @@ interface AppState {
   // Error state
   error: string | null;
   setError: (error: string | null) => void;
+
+  // Permission requests from Claude Code
+  permissionRequest: { requestId: string; toolName: string; input: Record<string, unknown> } | null;
+  setPermissionRequest: (req: { requestId: string; toolName: string; input: Record<string, unknown> } | null) => void;
+  autoApprovePermissions: boolean;
+  setAutoApprovePermissions: (on: boolean) => void;
 }
 
 /** Extract numbered questions from assistant response text */
@@ -112,6 +119,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       researchResult: null,
       showResearchSave: false,
       error: null,
+      permissionRequest: null,
+      autoApprovePermissions: false,
     }),
 
   meta: null,
@@ -181,6 +190,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   clearStreamContent: () => set({ streamingContent: "", isStreaming: false, pendingUserPrompt: null }),
 
   history: [],
+  historyLoaded: false,
   loadHistory: async () => {
     try {
       const res = await fetch("/api/history");
@@ -190,12 +200,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           // Advance the ID counter past any loaded IDs
           const maxId = Math.max(...entries.map((e) => Number(e.id) || 0));
           if (maxId >= nextId) nextId = maxId + 1;
-          set({ history: entries });
+          set({ history: entries, historyLoaded: true });
+          return;
         }
       }
     } catch {
       // silent — history will just start empty
     }
+    set({ historyLoaded: true });
   },
   clearHistory: () => {
     set({ history: [] });
@@ -216,4 +228,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   error: null,
   setError: (error) => set({ error }),
+
+  permissionRequest: null,
+  setPermissionRequest: (req) => set({ permissionRequest: req }),
+  autoApprovePermissions: false,
+  setAutoApprovePermissions: (on) => set({ autoApprovePermissions: on }),
 }));
