@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppStore } from "../../stores/appStore";
 import type { Meta } from "../../types";
 import GitSetupScreen from "./GitSetupScreen";
@@ -21,7 +21,6 @@ export default function StartScreen() {
   const setProject = useAppStore((s) => s.setProject);
   const setMeta = useAppStore((s) => s.setMeta);
 
-  const [name, setName] = useState("");
   const [recent, setRecent] = useState<RecentProject[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +60,7 @@ export default function StartScreen() {
       const res = await fetch("/api/project/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dir, name: name.trim() || undefined }),
+        body: JSON.stringify({ dir }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create project");
@@ -219,6 +218,16 @@ export default function StartScreen() {
     goToDashboard(pendingProject.dir, updatedMeta);
   }
 
+  async function handleRemoveRecent(dir: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setRecent((prev) => prev.filter((p) => p.dir !== dir));
+    await fetch("/api/project/recent", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dir }),
+    });
+  }
+
   function handleRemoteSkip() {
     if (!pendingProject) return;
     goToDashboard(pendingProject.dir, pendingProject.meta);
@@ -299,20 +308,6 @@ export default function StartScreen() {
           </button>
         </div>
 
-        {/* Optional: project name for new projects */}
-        <div className="mb-6">
-          <label className="block text-xs font-medium text-ink-faint font-mono uppercase tracking-wider mb-1.5">
-            Project Name <span className="text-ink-faint">(optional, for new projects)</span>
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="my-app"
-            className="w-full bg-panel border border-edge rounded-md px-3 py-2 text-sm text-ink placeholder-ink-faint focus:outline-none focus:border-edge-bright transition-colors"
-          />
-        </div>
-
         {/* Error */}
         {error && (
           <div className="bg-phase-tasks/10 border border-phase-tasks/20 rounded-lg px-4 py-3 mb-6 text-sm text-phase-tasks animate-fade-up">
@@ -328,24 +323,35 @@ export default function StartScreen() {
             </h2>
             <div className="space-y-1.5 stagger">
               {recent.map((project) => (
-                <button
+                <div
                   key={project.dir}
-                  onClick={() => handleOpen(project.dir)}
-                  disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-panel border border-edge rounded-lg hover:border-edge-bright hover:bg-raised transition-all text-left group disabled:opacity-50"
+                  className="flex items-center gap-2 group/row"
                 >
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">
-                      {project.name}
+                  <button
+                    onClick={() => handleOpen(project.dir)}
+                    disabled={loading}
+                    className="flex-1 flex items-center justify-between px-4 py-3 bg-panel border border-edge rounded-lg hover:border-edge-bright hover:bg-raised transition-all text-left group disabled:opacity-50 min-w-0"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-ink truncate">
+                        {project.name}
+                      </div>
+                      <div className="text-xs text-ink-faint font-mono truncate mt-0.5">
+                        {project.dir}
+                      </div>
                     </div>
-                    <div className="text-xs text-ink-faint font-mono truncate mt-0.5">
-                      {project.dir}
+                    <div className="text-xs text-ink-faint ml-4 shrink-0 group-hover:text-ink-muted transition-colors">
+                      {formatDate(project.lastOpened)}
                     </div>
-                  </div>
-                  <div className="text-xs text-ink-faint ml-4 shrink-0 group-hover:text-ink-muted transition-colors">
-                    {formatDate(project.lastOpened)}
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    onClick={(e) => handleRemoveRecent(project.dir, e)}
+                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded text-ink-faint opacity-0 group-hover/row:opacity-100 hover:text-phase-tasks hover:bg-phase-tasks/10 transition-all"
+                    title="Remove from recents"
+                  >
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           </div>

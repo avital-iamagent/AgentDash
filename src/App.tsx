@@ -24,11 +24,11 @@ const DEFAULT_STREAM_HEIGHT = 240;
 
 type TabName = "data" | "artifact" | "review" | "notes";
 
-const TABS: { key: TabName; label: string }[] = [
-  { key: "data", label: "Data" },
-  { key: "artifact", label: "Artifact" },
-  { key: "review", label: "Review" },
-  { key: "notes", label: "Notes" },
+const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
+  { key: "data", label: "Board" },
+  { key: "artifact", label: "Handoff", hideForPhases: ["tasks"] },
+  { key: "review", label: "Validate", hideForPhases: ["tasks"] },
+  { key: "notes", label: "Research Notes", hideForPhases: ["tasks"] },
 ];
 
 function Dashboard() {
@@ -102,7 +102,7 @@ function Dashboard() {
 
         {/* Tab bar */}
         <div className="px-6 flex gap-1 border-b border-edge bg-panel/30">
-          {TABS.map((tab) => {
+          {TABS.filter((tab) => !tab.hideForPhases?.includes(activePhase)).map((tab) => {
             const isActive = activeTab === tab.key;
             const tabColor = tab.key === "notes"
               ? "var(--color-phase-research)"

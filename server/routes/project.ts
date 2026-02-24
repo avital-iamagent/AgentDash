@@ -142,6 +142,16 @@ projectRoutes.get("/recent", async (_req, res) => {
   res.json(recent);
 });
 
+// DELETE /api/project/recent — remove a single entry by dir
+projectRoutes.delete("/recent", async (req, res) => {
+  const { dir } = req.body as { dir?: string };
+  if (!dir) { res.status(400).json({ error: "dir required" }); return; }
+  const recent = await readRecentFile();
+  recent.projects = recent.projects.filter((p) => p.dir !== dir);
+  await writeRecentFile(recent);
+  res.json({ ok: true });
+});
+
 // GET /api/project/pick-folder — open native macOS Finder dialog
 projectRoutes.get("/pick-folder", async (_req, res) => {
   try {
