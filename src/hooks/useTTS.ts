@@ -127,7 +127,7 @@ export function useTTS() {
 
   // Process each new chunk of streamed text
   useEffect(() => {
-    if (!ttsEnabled || activePhase !== "brainstorm" || !isStreaming) return;
+    if (!ttsEnabled || !isStreaming) return;
 
     const newText = streamingContent.slice(prevLengthRef.current);
     prevLengthRef.current = streamingContent.length;
@@ -142,7 +142,7 @@ export function useTTS() {
   // Flush any remaining buffer when streaming ends
   useEffect(() => {
     if (isStreaming || !wasStreamingRef.current) return;
-    if (ttsEnabled && activePhase === "brainstorm" && sentenceBufferRef.current.trim()) {
+    if (ttsEnabled && sentenceBufferRef.current.trim()) {
       enqueue(sentenceBufferRef.current);
       sentenceBufferRef.current = "";
     }

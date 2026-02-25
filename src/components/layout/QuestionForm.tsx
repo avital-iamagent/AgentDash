@@ -10,6 +10,7 @@ export default function QuestionForm() {
   const setError = useAppStore((s) => s.setError);
   const isStreaming = useAppStore((s) => s.isStreaming);
   const activePhase = useAppStore((s) => s.activePhase);
+  const phaseColor = `var(--color-phase-${activePhase})`;
 
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -44,7 +45,7 @@ export default function QuestionForm() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent, i: number) {
-    if (e.key === "Tab" && !e.shiftKey && i === pendingQuestions.length - 1) {
+    if (e.key === "Tab" && !e.shiftKey && i === (pendingQuestions?.length ?? 0) - 1) {
       e.preventDefault();
       handleSubmit();
     }
@@ -59,8 +60,11 @@ export default function QuestionForm() {
         {pendingQuestions.map((q, i) => (
           <div key={i} className="flex gap-3 items-start">
             {/* Number badge */}
-            <div className="shrink-0 w-5 h-5 rounded bg-phase-brainstorm/15 flex items-center justify-center mt-1.5">
-              <span className="text-[10px] font-mono font-bold text-phase-brainstorm">{i + 1}</span>
+            <div
+              className="shrink-0 w-5 h-5 rounded flex items-center justify-center mt-1.5"
+              style={{ backgroundColor: `color-mix(in srgb, ${phaseColor} 15%, transparent)` }}
+            >
+              <span className="text-[10px] font-mono font-bold" style={{ color: phaseColor }}>{i + 1}</span>
             </div>
             <div className="flex-1 space-y-1">
               <p className="text-xs text-ink-muted leading-snug">{q}</p>
@@ -86,7 +90,11 @@ export default function QuestionForm() {
         <button
           onClick={handleSubmit}
           disabled={isStreaming}
-          className="px-4 py-1.5 rounded-md text-sm font-medium bg-phase-brainstorm/15 text-phase-brainstorm hover:bg-phase-brainstorm/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            color: phaseColor,
+            backgroundColor: `color-mix(in srgb, ${phaseColor} 15%, transparent)`,
+          }}
         >
           Send answers
         </button>

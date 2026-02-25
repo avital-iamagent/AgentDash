@@ -9,7 +9,7 @@ function TTSToggle() {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); setTtsEnabled(!ttsEnabled); }}
-      title={ttsEnabled ? "Mute voice" : "Enable voice (ElevenLabs)"}
+      title={ttsEnabled ? "Mute voice" : "Enable voice (Kokoro)"}
       className={`shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors ${
         ttsEnabled
           ? "text-phase-brainstorm"
@@ -17,16 +17,18 @@ function TTSToggle() {
       }`}
     >
       {ttsEnabled ? (
-        // Talking head — animated mouth
-        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-          <path d="M10 2a6 6 0 00-6 6v1a6 6 0 0012 0V8a6 6 0 00-6-6zm-2 9a2 2 0 104 0H8z" />
-          <path d="M5 17a1 1 0 000 2h10a1 1 0 000-2H5z" />
+        // Speaker with sound waves
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+          <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" stroke="none" />
+          <path d="M15.54 8.46a5 5 0 010 7.07" strokeLinecap="round" />
+          <path d="M19.07 4.93a10 10 0 010 14.14" strokeLinecap="round" />
         </svg>
       ) : (
-        // Muted head
-        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-          <path fillRule="evenodd" d="M10 2a6 6 0 00-6 6v1a6 6 0 0012 0V8a6 6 0 00-6-6zm0 10a2 2 0 01-2-2h4a2 2 0 01-2 2z" clipRule="evenodd" />
-          <path d="M5 17a1 1 0 000 2h10a1 1 0 000-2H5z" />
+        // Speaker muted
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+          <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" stroke="none" />
+          <line x1="23" y1="9" x2="17" y2="15" strokeLinecap="round" />
+          <line x1="17" y1="9" x2="23" y2="15" strokeLinecap="round" />
         </svg>
       )}
     </button>
@@ -142,7 +144,7 @@ export default function PhaseStepper() {
                     <span className="text-[11px] text-ink-faint font-mono">
                       {phase.personality}
                     </span>
-                    {phase.name === "brainstorm" && <TTSToggle />}
+                    <TTSToggle />
                   </div>
                 )}
               </div>
