@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { usePrompt } from "../../hooks/usePrompt";
 import { useAppStore } from "../../stores/appStore";
+import { sendWsMessage } from "../../hooks/useWebSocket";
 
 export default function PromptBar() {
   const { prompt, setPrompt, submit, submitResearch, isStreaming } = usePrompt();
@@ -86,28 +87,32 @@ export default function PromptBar() {
           />
         </div>
 
-        {/* Send button */}
-        <button
-          onClick={researchMode ? submitResearch : submit}
-          disabled={!canSend}
-          className={`shrink-0 w-9 h-[40px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
-            researchMode
-              ? "bg-phase-research/15 border-phase-research/30 text-phase-research hover:bg-phase-research/25 disabled:hover:bg-phase-research/15"
-              : "bg-accent/15 border-accent/30 text-accent hover:bg-accent/25 disabled:hover:bg-accent/15"
-          }`}
-        >
-          {isStreaming ? (
-            <div className={`w-3.5 h-3.5 border-2 rounded-full animate-spin ${
+        {/* Stop button (while streaming) or Send button */}
+        {isStreaming ? (
+          <button
+            onClick={() => sendWsMessage({ type: "abort" })}
+            title="Stop generation"
+            className="shrink-0 w-9 h-[40px] rounded-lg border border-phase-tasks/40 bg-phase-tasks/10 text-phase-tasks hover:bg-phase-tasks/20 flex items-center justify-center transition-all"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="5" width="14" height="14" rx="2" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            onClick={researchMode ? submitResearch : submit}
+            disabled={!canSend}
+            className={`shrink-0 w-9 h-[40px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
               researchMode
-                ? "border-phase-research/40 border-t-phase-research"
-                : "border-accent/40 border-t-accent"
-            }`} />
-          ) : (
+                ? "bg-phase-research/15 border-phase-research/30 text-phase-research hover:bg-phase-research/25 disabled:hover:bg-phase-research/15"
+                : "bg-accent/15 border-accent/30 text-accent hover:bg-accent/25 disabled:hover:bg-accent/15"
+            }`}
+          >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          )}
-        </button>
+          </button>
+        )}
       </div>
 
       {/* Status hints */}

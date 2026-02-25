@@ -1,4 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import fs from "fs/promises";
+import path from "path";
 
 const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
@@ -7,6 +9,34 @@ const PHASE_SKILLS: Record<string, string> = {
   environment: "/phase-4-environment",
   tasks: "/phase-5-tasks",
 };
+
+/**
+ * Reads the last N conversation turns for a phase from history.json.
+ * Returns a formatted string, or empty string if no history.
+ */
+/**
+ * Returns the last 1 full exchange (user + assistant) for a phase.
+ * Enough context to avoid re-introduction without altering Claude's behavior.
+ */
+async function readPhaseHistory(projectDir: string, phase: string): Promise<string> {
+  try {
+    const raw = await fs.readFile(path.join(projectDir, ".agentdash", "history.json"), "utf-8");
+    const entries: { role: string; content: string; phase: string }[] = JSON.parse(raw);
+    const phaseEntries = entries.filter((e) => e.phase === phase).slice(-4); // last 2 exchanges
+    if (phaseEntries.length === 0) return "";
+    return phaseEntries
+      .map((e) => {
+        const role = e.role === "user" ? "User" : "Assistant";
+        // Keep assistant summaries short to avoid overwhelming the context
+        const limit = e.role === "assistant" ? 400 : 600;
+        const content = e.content.length > limit ? e.content.slice(0, limit) + "…" : e.content;
+        return `${role}: ${content}`;
+      })
+      .join("\n\n");
+  } catch {
+    return "";
+  }
+}
 
 /**
  * Streams a prompt through Claude Code with the appropriate phase skill.
@@ -24,10 +54,32 @@ export async function* sendPrompt(
   userPrompt: string,
   phase: string,
   projectDir: string,
-  onPermissionRequest?: (toolName: string, input: Record<string, unknown>) => Promise<boolean>
+  onPermissionRequest?: (toolName: string, input: Record<string, unknown>) => Promise<boolean>,
+  signal?: AbortSignal
 ) {
   const skillPrefix = PHASE_SKILLS[phase];
   if (!skillPrefix) throw new Error(`Unknown phase: ${phase}`);
+
+  // For "begin" (phase kick-off) there's no prior history to include.
+  // For all follow-up messages, prepend the recent conversation so Claude
+  // doesn't re-read state or re-introduce itself on every turn.
+  let fullPrompt: string;
+  if (userPrompt.trim() === "begin") {
+    fullPrompt = `${skillPrefix} begin`;
+  } else {
+    const history = await readPhaseHistory(projectDir, phase);
+    if (history) {
+      fullPrompt = `${skillPrefix}
+
+## Conversation so far
+${history}
+
+## User's message
+${userPrompt}`;
+    } else {
+      fullPrompt = `${skillPrefix} ${userPrompt}`;
+    }
+  }
 
   const canUseTool = onPermissionRequest
     ? async (toolName: string, input: Record<string, unknown>) => {
@@ -40,7 +92,7 @@ export async function* sendPrompt(
 
   try {
     const stream = query({
-      prompt: `${skillPrefix} ${userPrompt}`,
+      prompt: fullPrompt,
       options: {
         cwd: projectDir,
         systemPrompt: { type: "preset", preset: "claude_code" },
@@ -48,6 +100,7 @@ export async function* sendPrompt(
         includePartialMessages: true,
         allowedTools: ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
         ...(canUseTool && { canUseTool }),
+        ...(signal && { signal }),
       },
     });
 

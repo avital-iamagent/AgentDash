@@ -30,15 +30,36 @@ No previous artifact to read — this is Phase 1.
 ## Working State
 Read and update: `.agentdash/brainstorm/state.json`
 
+### Card Schema (exact field names — do not deviate)
+```json
+{
+  "id": "<uuid>",
+  "text": "<short title/idea — this is the main card text>",
+  "notes": "<longer explanation, context, or your critical assessment>",
+  "status": "proposed",
+  "createdBy": "claude-code",
+  "createdAt": "<ISO 8601 timestamp>",
+  "group": "<group-id or null>",
+  "tags": ["<tag>"]
+}
+```
+IMPORTANT: The main content field is `text`, NOT `title`, `body`, `content`, or `description`.
+Notes go in `notes`, NOT `body`, `detail`, or `description`.
+
+### Group Schema
+```json
+{ "id": "<uuid>", "name": "<group name>" }
+```
+Groups do NOT have `cardIds` arrays. Cards reference groups via `card.group = groupId`.
+
 ### Adding Ideas
-When the user shares an idea, add it as a card:
-- Generate a UUID for `id`
-- Set `createdBy: "user"` or `"claude-code"`
+When the user shares an idea, add it as a card following the schema above:
 - Set `status: "proposed"` — user accepts/rejects later
+- Set `createdBy: "claude-code"` for your ideas, `"user"` for ideas the user stated
 - Always add your critical assessment in `notes`
 
 ### Organizing
-- Group related cards under shared `group` IDs
+- Assign `group` on each card to link it to a group
 - Suggest tags for categorization
 - Rank cards by importance when asked
 
