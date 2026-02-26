@@ -4,10 +4,15 @@ import path from "path";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { fileURLToPath } from "url";
 import type { RecentProject, RecentProjectsFile } from "../types/index.js";
 import { detectGitStatus } from "./git.js";
 
 const execFileAsync = promisify(execFile);
+
+/** Resolve the AgentDash installation root (where .claude/ and .agentdash/templates/ live) */
+const __dirnameRoutes = path.dirname(fileURLToPath(import.meta.url));
+const AGENTDASH_ROOT = process.env.AGENTDASH_ROOT || path.resolve(__dirnameRoutes, "..", "..");
 
 export const projectRoutes = Router();
 
@@ -35,7 +40,7 @@ function setActiveProject(dir: string) {
 // --- Helpers ---
 
 /** Path to AgentDash's own .claude/ directory (source of truth for skills/rules) */
-const AGENTDASH_CLAUDE_DIR = path.join(process.cwd(), ".claude");
+const AGENTDASH_CLAUDE_DIR = path.join(AGENTDASH_ROOT, ".claude");
 
 /**
  * Scaffold .claude/ directory into a user project so the SDK can find
@@ -257,7 +262,7 @@ projectRoutes.post("/create", async (req, res) => {
     await fs.writeFile(path.join(agentdashDir, "research-notes", ".gitkeep"), "");
 
     // Copy templates from the AgentDash install
-    const ownTemplatesDir = path.join(process.cwd(), ".agentdash", "templates");
+    const ownTemplatesDir = path.join(AGENTDASH_ROOT, ".agentdash", "templates");
     try {
       const templateFiles = await fs.readdir(ownTemplatesDir);
       for (const f of templateFiles) {
