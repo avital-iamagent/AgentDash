@@ -98,17 +98,21 @@ if (portIdx !== -1) {
 
 // --- Start the server ---
 
+// Determine project root from config or by resolving from this script's location
+const projectRoot = config.installPath || path.resolve(__dirname, "..");
+
 // Set environment variables for the server
 process.env.PORT = String(port);
 process.env.AGENTDASH_CONFIG = CONFIG_PATH;
+process.env.AGENTDASH_ROOT = projectRoot;
 
 console.log(`Starting AgentDash on http://localhost:${port} ...`);
 
-// Import and start the server
-const serverPath = path.resolve(__dirname, "..", "server", "index.js");
+// Import and start the server (compiled output lives in dist-server/)
+const serverPath = path.join(projectRoot, "dist-server", "server", "index.js");
 if (!fs.existsSync(serverPath)) {
   // Fallback: try running from source with tsx (dev mode)
-  const srcPath = path.resolve(__dirname, "..", "server", "index.ts");
+  const srcPath = path.join(projectRoot, "server", "index.ts");
   if (fs.existsSync(srcPath)) {
     console.log("(running from source — use npm run build for production)");
     import(srcPath).then(() => {

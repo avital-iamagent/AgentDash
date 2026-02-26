@@ -26,9 +26,14 @@ app.use("/api", stateRoutes);
 app.use("/api/git", gitRoutes);
 app.use("/api/tts", ttsRoutes);
 
-// --- Serve static frontend in production ---
+// --- Resolve project root ---
+// In production: AGENTDASH_ROOT is set by the CLI entry point
+// In dev: fall back to __dirname/../ (server/ is one level below root)
 const __dirnameServer = path.dirname(fileURLToPath(import.meta.url));
-const distPath = path.resolve(__dirnameServer, "..", "dist");
+const projectRoot = process.env.AGENTDASH_ROOT || path.resolve(__dirnameServer, "..");
+
+// --- Serve static frontend in production ---
+const distPath = path.join(projectRoot, "dist");
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 }
@@ -47,7 +52,7 @@ if (fs.existsSync(distPath)) {
 }
 
 // Use HTTPS if local certs exist, otherwise fall back to HTTP
-const certDir = path.resolve(__dirnameServer, "..", ".certs");
+const certDir = path.join(projectRoot, ".certs");
 const certPath = path.join(certDir, "cert.pem");
 const keyPath = path.join(certDir, "key.pem");
 const hasCerts = fs.existsSync(certPath) && fs.existsSync(keyPath);
