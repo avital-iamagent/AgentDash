@@ -40,7 +40,11 @@ Then:
 
 If any step fails, show the error output and suggest fixes (e.g., "It looks like there might be a network issue — check your connection and try again").
 
-6. Create or update the config directory and file:
+6. **Explain the two-location structure**, then create the config. Tell the user something like:
+
+   > Quick note on how AgentDash is organized: the app code you just built lives at `<chosen-path>`. Separately, AgentDash keeps a small config directory at `~/.agentdash/` — this holds your preferences and the `agentdash` CLI command. This way the CLI always lives at a known location regardless of where you installed the app.
+
+   Then create the config:
    - `mkdir -p ~/.agentdash/bin`
    - Write `~/.agentdash/config.json` with the install path. If the file already exists, **read it first and merge** — only update the `installPath` field, preserving other settings:
      ```json
