@@ -106,7 +106,13 @@ ${userPrompt}`;
 
     let receivedChunks = false;
     for await (const msg of stream) {
-      if (msg.type === "stream_event") {
+      if (msg.type === "auth_status") {
+        const authMsg = msg as any;
+        if (authMsg.error) {
+          yield { type: "auth_error" as const, message: authMsg.error };
+          return;
+        }
+      } else if (msg.type === "stream_event") {
         const event = (msg as any).event;
         if (
           event?.type === "content_block_delta" &&
@@ -117,8 +123,13 @@ ${userPrompt}`;
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
       } else if (msg.type === "assistant") {
+        const assistantMsg = msg as any;
+        if (assistantMsg.error === "authentication_failed") {
+          yield { type: "auth_error" as const, message: "Authentication expired" };
+          return;
+        }
         // Full message — extract complete text for clients that missed streaming
-        const text = (msg as any).message?.content
+        const text = assistantMsg.message?.content
           ?.filter((b: any) => b.type === "text")
           .map((b: any) => b.text)
           .join("");
@@ -178,7 +189,13 @@ export async function* runResearch(
 
     let receivedChunks = false;
     for await (const msg of stream) {
-      if (msg.type === "stream_event") {
+      if (msg.type === "auth_status") {
+        const authMsg = msg as any;
+        if (authMsg.error) {
+          yield { type: "auth_error" as const, message: authMsg.error };
+          return;
+        }
+      } else if (msg.type === "stream_event") {
         const event = (msg as any).event;
         if (
           event?.type === "content_block_delta" &&
@@ -189,7 +206,12 @@ export async function* runResearch(
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
       } else if (msg.type === "assistant") {
-        const text = (msg as any).message?.content
+        const assistantMsg = msg as any;
+        if (assistantMsg.error === "authentication_failed") {
+          yield { type: "auth_error" as const, message: "Authentication expired" };
+          return;
+        }
+        const text = assistantMsg.message?.content
           ?.filter((b: any) => b.type === "text")
           .map((b: any) => b.text)
           .join("");
@@ -244,7 +266,13 @@ export async function* runReview(
     });
 
     for await (const msg of stream) {
-      if (msg.type === "stream_event") {
+      if (msg.type === "auth_status") {
+        const authMsg = msg as any;
+        if (authMsg.error) {
+          yield { type: "auth_error" as const, message: authMsg.error };
+          return;
+        }
+      } else if (msg.type === "stream_event") {
         const event = (msg as any).event;
         if (
           event?.type === "content_block_delta" &&
@@ -252,6 +280,12 @@ export async function* runReview(
           event.delta.text
         ) {
           yield { type: "response_chunk" as const, content: event.delta.text };
+        }
+      } else if (msg.type === "assistant") {
+        const assistantMsg = msg as any;
+        if (assistantMsg.error === "authentication_failed") {
+          yield { type: "auth_error" as const, message: "Authentication expired" };
+          return;
         }
       } else if (msg.type === "tool_progress") {
         const tp = msg as any;

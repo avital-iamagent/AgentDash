@@ -18,6 +18,7 @@ import TaskBoard from "./components/phases/TaskBoard";
 import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
 import PermissionModal from "./components/shared/PermissionModal";
+import AuthErrorModal from "./components/shared/AuthErrorModal";
 import QuestionForm from "./components/layout/QuestionForm";
 import type { PhaseName } from "./types";
 
@@ -184,6 +185,9 @@ function Dashboard() {
 
       {/* Permission request modal */}
       <PermissionModal />
+
+      {/* Auth error modal */}
+      <AuthErrorModal />
     </div>
   );
 }

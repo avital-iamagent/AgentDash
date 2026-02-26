@@ -90,6 +90,13 @@ function handleMessage(event: MessageEvent) {
       break;
     }
 
+    case "auth_error":
+      store.setAuthError(
+        typeof msg.message === "string" ? msg.message : "Authentication failed"
+      );
+      store.stopStreaming();
+      break;
+
     case "error":
       store.setError(
         typeof msg.message === "string" ? msg.message : "An error occurred"

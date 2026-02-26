@@ -69,6 +69,10 @@ interface AppState {
   error: string | null;
   setError: (error: string | null) => void;
 
+  // Auth error (shown as a dedicated modal with re-auth instructions)
+  authError: string | null;
+  setAuthError: (error: string | null) => void;
+
   // Permission requests from Claude Code
   permissionRequest: { requestId: string; toolName: string; input: Record<string, unknown> } | null;
   setPermissionRequest: (req: { requestId: string; toolName: string; input: Record<string, unknown> } | null) => void;
@@ -127,6 +131,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       showResearchSave: false,
       showWelcome: false,
       error: null,
+      authError: null,
       permissionRequest: null,
       autoApprovePermissions: false,
     }),
@@ -244,6 +249,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   error: null,
   setError: (error) => set({ error }),
+
+  authError: null,
+  setAuthError: (error) => set({ authError: error }),
 
   permissionRequest: null,
   setPermissionRequest: (req) => set({ permissionRequest: req }),
