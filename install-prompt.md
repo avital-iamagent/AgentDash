@@ -32,7 +32,7 @@ Then:
    - `cd` to the directory and run `git pull`.
 2. **Fresh install**: Otherwise:
    - Create parent directories if needed: `mkdir -p <parent>`
-   - Clone: `git clone https://github.com/avital-iamagent/AgentDash.git <chosen-path>`
+   - Clone: `git clone --depth 1 https://github.com/avital-iamagent/AgentDash.git <chosen-path>`
 
 3. `cd` into the install directory.
 4. Run `npm install` — tell the user this may take a minute.
