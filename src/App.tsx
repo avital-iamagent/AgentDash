@@ -36,6 +36,9 @@ const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
 
 function Dashboard() {
   const activePhase = useAppStore((s) => s.activePhase);
+  const projectName = useAppStore((s) => s.projectName);
+  const showWelcome = useAppStore((s) => s.showWelcome);
+  const setShowWelcome = useAppStore((s) => s.setShowWelcome);
   const [activeTab, setActiveTab] = useState<TabName>("data");
   const [streamPanelHeight, setStreamPanelHeight] = useState(DEFAULT_STREAM_HEIGHT);
   const hasStreamContent = useAppStore(
@@ -103,6 +106,22 @@ function Dashboard() {
         <div className="px-6 pt-5 pb-4 border-b border-edge bg-panel/50">
           <PhaseHeader />
         </div>
+
+        {/* Welcome banner for new projects */}
+        {showWelcome && (
+          <div className="px-6 py-3 bg-phase-brainstorm/8 border-b border-phase-brainstorm/20 flex items-center justify-between animate-fade-up">
+            <p className="text-sm text-ink-muted">
+              <span className="text-phase-brainstorm font-medium">Welcome to {projectName}!</span>
+              {" "}Start by describing your idea in the prompt below.
+            </p>
+            <button
+              onClick={() => setShowWelcome(false)}
+              className="text-ink-faint hover:text-ink-muted text-xs ml-4 shrink-0 transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Tab bar */}
         <div className="px-6 flex gap-1 border-b border-edge bg-panel/30">

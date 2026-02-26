@@ -20,6 +20,7 @@ interface PendingProject {
 export default function StartScreen() {
   const setProject = useAppStore((s) => s.setProject);
   const setMeta = useAppStore((s) => s.setMeta);
+  const setShowWelcome = useAppStore((s) => s.setShowWelcome);
 
   const [recent, setRecent] = useState<RecentProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,7 @@ export default function StartScreen() {
       if (!res.ok) throw new Error(data.error || "Failed to create project");
 
       const meta: Meta = data.meta;
+      setShowWelcome(true);
 
       // If folder already has .git, auto-detect was done in create
       if (meta.git.enabled) {

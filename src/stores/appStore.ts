@@ -61,6 +61,10 @@ interface AppState {
   showResearchSave: boolean;
   dismissResearchSave: () => void;
 
+  // Welcome banner (shown once after creating a new project)
+  showWelcome: boolean;
+  setShowWelcome: (show: boolean) => void;
+
   // Error state
   error: string | null;
   setError: (error: string | null) => void;
@@ -121,6 +125,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       researchMode: false,
       researchResult: null,
       showResearchSave: false,
+      showWelcome: false,
       error: null,
       permissionRequest: null,
       autoApprovePermissions: false,
@@ -153,6 +158,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     pendingUserPrompt: userPrompt ?? null,
     pendingQuestions: null,
     toolActivity: null,
+    showWelcome: false,
   }),
   stopStreaming: () => {
     const s = get();
@@ -232,6 +238,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   researchResult: null,
   showResearchSave: false,
   dismissResearchSave: () => set({ researchResult: null, showResearchSave: false }),
+
+  showWelcome: false,
+  setShowWelcome: (show) => set({ showWelcome: show }),
 
   error: null,
   setError: (error) => set({ error }),
