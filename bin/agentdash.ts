@@ -127,7 +127,7 @@ function tryReadEnvKey(): boolean {
 console.log(`Starting AgentDash on http://localhost:${port} ...`);
 
 // Import and start the server
-const serverPath = path.resolve(__dirname, "..", "dist-server", "server", "index.js");
+const serverPath = path.resolve(__dirname, "..", "server", "index.js");
 if (!fs.existsSync(serverPath)) {
   // Fallback: try running from source with tsx (dev mode)
   const srcPath = path.resolve(__dirname, "..", "server", "index.ts");
