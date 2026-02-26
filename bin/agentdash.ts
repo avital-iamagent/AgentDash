@@ -102,28 +102,6 @@ if (portIdx !== -1) {
 process.env.PORT = String(port);
 process.env.AGENTDASH_CONFIG = CONFIG_PATH;
 
-// Check for Anthropic API key reachability
-if (!process.env.ANTHROPIC_API_KEY) {
-  const keyFromEnvFile = tryReadEnvKey();
-  if (!keyFromEnvFile) {
-    console.warn(
-      "\nWarning: ANTHROPIC_API_KEY is not set. Claude features will not work.\n" +
-      "Set it with: export ANTHROPIC_API_KEY=your-key-here\n"
-    );
-  }
-}
-
-function tryReadEnvKey(): boolean {
-  // Check for .env file in the app directory
-  const envPath = path.resolve(__dirname, "..", ".env");
-  try {
-    const envContent = fs.readFileSync(envPath, "utf8");
-    return envContent.includes("ANTHROPIC_API_KEY");
-  } catch {
-    return false;
-  }
-}
-
 console.log(`Starting AgentDash on http://localhost:${port} ...`);
 
 // Import and start the server

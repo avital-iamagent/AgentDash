@@ -33,8 +33,9 @@ Use section headers like `━━━ Step 1: Prerequisites ━━━` before each
 
 Check prerequisites:
 
-1. **git**: Run `git --version`. If missing, tell the user to install Xcode Command Line Tools with `xcode-select --install` and re-run this installer after.
-2. **node**: Run `node --version`. Require version 18+. If missing or too old:
+1. **Claude Code**: Run `claude --version`. If missing, stop and tell the user: "AgentDash requires Claude Code to be installed and authenticated. Visit https://docs.anthropic.com/en/docs/claude-code to set it up, then re-run this installer." This is a hard requirement — AgentDash uses the Claude Code SDK for all AI features.
+2. **git**: Run `git --version`. If missing, tell the user to install Xcode Command Line Tools with `xcode-select --install` and re-run this installer after.
+3. **node**: Run `node --version`. Require version 18+. If missing or too old:
    - Check if Homebrew is installed (`brew --version`).
    - If Homebrew is missing, ask the user: "Node.js 18+ is required. I can install Homebrew (the macOS package manager) and then install Node.js through it. Shall I proceed?"
    - If they agree, run `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` then `brew install node`.
