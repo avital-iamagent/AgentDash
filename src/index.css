@@ -24,6 +24,8 @@
   --color-phase-coding: #06B6D4;
 }
 
+html, body { background: var(--color-canvas); }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
