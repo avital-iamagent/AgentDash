@@ -46,7 +46,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // SPA catch-all: serve index.html for non-API routes (must come after error handler registration)
 if (fs.existsSync(distPath)) {
-  app.get("*", (_req, res) => {
+  app.get("/{*splat}", (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 }
