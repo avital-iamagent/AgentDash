@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { KokoroTTS } from "kokoro-js";
+import { userConfig } from "../config.js";
 
 export const ttsRoutes = Router();
+
+// GET /api/tts/status — lets the frontend know if TTS is available
+ttsRoutes.get("/status", (_req, res) => {
+  res.json({ enabled: userConfig.tts !== false });
+});
 
 const DEFAULT_VOICE = "af_heart";
 let ttsInstance: Promise<KokoroTTS> | null = null;
@@ -43,6 +49,11 @@ function float32ToWav(samples: Float32Array, sampleRate: number): Buffer {
 
 // POST /api/tts — local Kokoro inference, returns audio/wav
 ttsRoutes.post("/", async (req, res) => {
+  if (userConfig.tts === false) {
+    res.status(404).json({ error: "TTS is disabled" });
+    return;
+  }
+
   const { text } = req.body as { text?: string };
   if (!text) { res.status(400).json({ error: "text required" }); return; }
 

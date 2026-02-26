@@ -12,6 +12,7 @@ import { gitRoutes } from "./routes/git.js";
 import { ttsRoutes } from "./routes/tts.js";
 import { setupPromptHandler } from "./ws/prompt.js";
 import { setupFileWatcher, startWatching } from "./ws/filewatch.js";
+import { userConfig } from "./config.js";
 
 const app = express();
 
@@ -25,15 +26,28 @@ app.use("/api", stateRoutes);
 app.use("/api/git", gitRoutes);
 app.use("/api/tts", ttsRoutes);
 
+// --- Serve static frontend in production ---
+const __dirnameServer = path.dirname(fileURLToPath(import.meta.url));
+const distPath = path.resolve(__dirnameServer, "..", "dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("[AgentDash] Server error:", err.message);
   res.status(500).json({ error: err.message });
 });
 
+// SPA catch-all: serve index.html for non-API routes (must come after error handler registration)
+if (fs.existsSync(distPath)) {
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
+
 // Use HTTPS if local certs exist, otherwise fall back to HTTP
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const certDir = path.resolve(__dirname, "..", ".certs");
+const certDir = path.resolve(__dirnameServer, "..", ".certs");
 const certPath = path.join(certDir, "cert.pem");
 const keyPath = path.join(certDir, "key.pem");
 const hasCerts = fs.existsSync(certPath) && fs.existsSync(keyPath);
@@ -55,7 +69,7 @@ wss.on("error", (err) => {
   console.error("[AgentDash] WebSocket server error:", err.message);
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || userConfig.port || 3001;
 const proto = hasCerts ? "https" : "http";
 server.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`AgentDash server running on ${proto}://0.0.0.0:${PORT}`);
