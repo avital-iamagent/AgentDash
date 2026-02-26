@@ -3,11 +3,25 @@ import Markdown from "react-markdown";
 import { useAppStore } from "../../stores/appStore";
 import type { HistoryEntry } from "../../stores/appStore";
 
+const TOOL_LABELS: Record<string, string> = {
+  Read: "Reading file",
+  Bash: "Running command",
+  Grep: "Searching code",
+  Glob: "Finding files",
+  Write: "Writing file",
+  Edit: "Editing file",
+  WebSearch: "Searching the web",
+  WebFetch: "Fetching page",
+  Skill: "Running skill",
+  Task: "Running agent",
+};
+
 export default function StreamingDisplay({ height }: { height?: number }) {
   const isStreaming = useAppStore((s) => s.isStreaming);
   const isResearchStream = useAppStore((s) => s.isResearchStream);
   const streamingContent = useAppStore((s) => s.streamingContent);
   const pendingUserPrompt = useAppStore((s) => s.pendingUserPrompt);
+  const toolActivity = useAppStore((s) => s.toolActivity);
   const error = useAppStore((s) => s.error);
   const setError = useAppStore((s) => s.setError);
   const history = useAppStore((s) => s.history);
@@ -69,20 +83,13 @@ export default function StreamingDisplay({ height }: { height?: number }) {
             </div>
           )}
 
-          {/* Streaming indicator */}
-          {isStreaming && !streamingContent && (
-            <div className={`flex items-center gap-2 text-sm animate-fade-up ${
-              isResearchStream ? "text-phase-research" : "text-ink-muted"
-            }`}>
-              <div className="flex gap-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out infinite" }} />
-                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.2s infinite" }} />
-                <div className={`w-1.5 h-1.5 rounded-full ${isResearchStream ? "bg-phase-research/50" : "bg-ink-faint"}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.4s infinite" }} />
-              </div>
-              <span className="font-mono text-xs">
-                {isResearchStream ? "Researching..." : "Claude is thinking..."}
-              </span>
-            </div>
+          {/* Streaming indicator — pre-text thinking or tool activity */}
+          {isStreaming && (!streamingContent || toolActivity) && (
+            <ActivityIndicator
+              toolActivity={toolActivity}
+              isResearchStream={isResearchStream}
+              hasContent={!!streamingContent}
+            />
           )}
 
           <div ref={bottomRef} />
@@ -107,6 +114,40 @@ function HistoryMessage({ entry }: { entry: HistoryEntry }) {
   return (
     <div className="prose-stream text-sm border-l-2 border-edge pl-3">
       <Markdown>{entry.content}</Markdown>
+    </div>
+  );
+}
+
+function ActivityIndicator({
+  toolActivity,
+  isResearchStream,
+  hasContent,
+}: {
+  toolActivity: { toolName: string; elapsedSeconds: number } | null;
+  isResearchStream: boolean;
+  hasContent: boolean;
+}) {
+  const toolLabel = toolActivity
+    ? TOOL_LABELS[toolActivity.toolName] ?? toolActivity.toolName
+    : null;
+
+  const label = toolLabel
+    ? `${toolLabel}  ${Math.round(toolActivity!.elapsedSeconds)}s`
+    : isResearchStream
+      ? "Researching..."
+      : "Claude is thinking...";
+
+  const dotColor = isResearchStream ? "bg-phase-research/50" : "bg-ink-faint";
+  const textColor = hasContent ? "text-ink-faint" : isResearchStream ? "text-phase-research" : "text-ink-muted";
+
+  return (
+    <div className={`flex items-center gap-2 text-sm animate-fade-up ${textColor}`}>
+      <div className="flex gap-1">
+        <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} style={{ animation: "pulse-dot 1.2s ease-in-out infinite" }} />
+        <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.2s infinite" }} />
+        <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} style={{ animation: "pulse-dot 1.2s ease-in-out 0.4s infinite" }} />
+      </div>
+      <span className="font-mono text-xs">{label}</span>
     </div>
   );
 }

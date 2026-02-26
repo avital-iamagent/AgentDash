@@ -33,10 +33,12 @@ interface AppState {
   isResearchStream: boolean;
   streamingContent: string;
   pendingUserPrompt: string | null;
+  toolActivity: { toolName: string; elapsedSeconds: number } | null;
   startStreaming: (userPrompt?: string, isResearch?: boolean) => void;
   stopStreaming: () => void;
   appendStreamContent: (chunk: string) => void;
   clearStreamContent: () => void;
+  setToolActivity: (activity: { toolName: string; elapsedSeconds: number } | null) => void;
 
   // Message history (persisted to .agentdash/history.json)
   history: HistoryEntry[];
@@ -113,6 +115,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       streamingContent: "",
       pendingUserPrompt: null,
       pendingQuestions: null,
+      toolActivity: null,
       history: [],
       isResearchStream: false,
       researchMode: false,
@@ -141,12 +144,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   isResearchStream: false,
   streamingContent: "",
   pendingUserPrompt: null,
+  toolActivity: null,
+  setToolActivity: (activity) => set({ toolActivity: activity }),
   startStreaming: (userPrompt, isResearch) => set({
     isStreaming: true,
     isResearchStream: isResearch ?? false,
     streamingContent: "",
     pendingUserPrompt: userPrompt ?? null,
     pendingQuestions: null,
+    toolActivity: null,
   }),
   stopStreaming: () => {
     const s = get();
@@ -178,6 +184,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       isResearchStream: false,
       streamingContent: "",
       pendingUserPrompt: null,
+      toolActivity: null,
       history: newHistory,
       pendingQuestions: questions,
       ...researchUpdate,
@@ -186,7 +193,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     persistHistory(newHistory);
   },
   appendStreamContent: (chunk) =>
-    set((s) => ({ streamingContent: s.streamingContent + chunk })),
+    set((s) => ({ streamingContent: s.streamingContent + chunk, toolActivity: null })),
   clearStreamContent: () => set({ streamingContent: "", isStreaming: false, pendingUserPrompt: null }),
 
   history: [],

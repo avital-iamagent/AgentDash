@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
@@ -16,29 +16,34 @@ const httpsConfig = hasCerts
 const backendProto = hasCerts ? "https" : "http";
 const wsProto = hasCerts ? "wss" : "ws";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-  server: {
-    host: true,
-    port: 5173,
-    https: httpsConfig,
-    proxy: {
-      "/api": {
-        target: `${backendProto}://localhost:3001`,
-        changeOrigin: true,
-        secure: false,
-      },
-      "/ws": {
-        target: `${wsProto}://localhost:3001`,
-        ws: true,
-        rewriteWsOrigin: true,
-        secure: false,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, __dirname, "VITE_");
+
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
       },
     },
-  },
+    server: {
+      host: true,
+      port: 5173,
+      allowedHosts: env.VITE_ALLOWED_HOSTS === "all" ? true : undefined,
+      https: httpsConfig,
+      proxy: {
+        "/api": {
+          target: `${backendProto}://localhost:3001`,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/ws": {
+          target: `${wsProto}://localhost:3001`,
+          ws: true,
+          rewriteWsOrigin: true,
+          secure: false,
+        },
+      },
+    },
+  };
 });

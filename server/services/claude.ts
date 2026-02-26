@@ -125,6 +125,13 @@ ${userPrompt}`;
         if (text) {
           yield { type: "assistant_message" as const, content: text };
         }
+      } else if (msg.type === "tool_progress") {
+        const tp = msg as any;
+        yield {
+          type: "tool_activity" as const,
+          toolName: tp.tool_name as string,
+          elapsedSeconds: tp.elapsed_time_seconds as number,
+        };
       } else if (msg.type === "result") {
         const result = msg as any;
         // Only use result.result as fallback when no streaming chunks were received
@@ -189,6 +196,13 @@ export async function* runResearch(
         if (text) {
           yield { type: "assistant_message" as const, content: text };
         }
+      } else if (msg.type === "tool_progress") {
+        const tp = msg as any;
+        yield {
+          type: "tool_activity" as const,
+          toolName: tp.tool_name as string,
+          elapsedSeconds: tp.elapsed_time_seconds as number,
+        };
       } else if (msg.type === "result") {
         const result = msg as any;
         // Only use result.result as fallback when no streaming chunks were received
@@ -239,6 +253,13 @@ export async function* runReview(
         ) {
           yield { type: "response_chunk" as const, content: event.delta.text };
         }
+      } else if (msg.type === "tool_progress") {
+        const tp = msg as any;
+        yield {
+          type: "tool_activity" as const,
+          toolName: tp.tool_name as string,
+          elapsedSeconds: tp.elapsed_time_seconds as number,
+        };
       } else if (msg.type === "result") {
         const result = msg as any;
         yield {

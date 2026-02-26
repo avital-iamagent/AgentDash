@@ -68,6 +68,13 @@ function handleMessage(event: MessageEvent) {
       store.stopStreaming();
       break;
 
+    case "tool_activity":
+      store.setToolActivity({
+        toolName: msg.toolName as string,
+        elapsedSeconds: msg.elapsedSeconds as number,
+      });
+      break;
+
     case "permission_request": {
       const { requestId, toolName, input } = msg as {
         requestId: string;
