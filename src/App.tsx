@@ -15,6 +15,7 @@ import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
 import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
+import VisualsPanel from "./components/phases/VisualsPanel";
 import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
 import PermissionModal from "./components/shared/PermissionModal";
@@ -26,13 +27,14 @@ const MIN_STREAM_HEIGHT = 80;
 const MAX_STREAM_HEIGHT_RATIO = 0.75;
 const DEFAULT_STREAM_HEIGHT = 240;
 
-type TabName = "data" | "artifact" | "review" | "notes";
+type TabName = "data" | "artifact" | "review" | "notes" | "visuals";
 
 const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
   { key: "data", label: "Board" },
   { key: "artifact", label: "Handoff", hideForPhases: ["tasks"] },
   { key: "review", label: "Validate", hideForPhases: ["tasks"] },
   { key: "notes", label: "Research Notes", hideForPhases: ["tasks"] },
+  { key: "visuals", label: "Visuals", hideForPhases: ["brainstorm", "research", "architecture", "environment"] },
 ];
 
 function Dashboard() {
@@ -158,6 +160,7 @@ function Dashboard() {
           {activeTab === "artifact" && <ArtifactPreview phase={activePhase} />}
           {activeTab === "review" && <ReviewPanel phase={activePhase} />}
           {activeTab === "notes" && <ResearchNotesPanel />}
+          {activeTab === "visuals" && <VisualsPanel />}
         </div>
 
         {/* Draggable divider — only visible when stream panel has content */}

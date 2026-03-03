@@ -10,6 +10,7 @@ import { stateRoutes } from "./routes/state.js";
 import { projectRoutes, setOnProjectOpen } from "./routes/project.js";
 import { gitRoutes } from "./routes/git.js";
 import { ttsRoutes } from "./routes/tts.js";
+import { visualsRoutes } from "./routes/visuals.js";
 import { setupPromptHandler } from "./ws/prompt.js";
 import { setupFileWatcher, startWatching } from "./ws/filewatch.js";
 import { userConfig } from "./config.js";
@@ -25,6 +26,7 @@ app.use("/api/project", projectRoutes);
 app.use("/api", stateRoutes);
 app.use("/api/git", gitRoutes);
 app.use("/api/tts", ttsRoutes);
+app.use("/api/visuals", visualsRoutes);
 
 // --- Resolve project root ---
 // In production: AGENTDASH_ROOT is set by the CLI entry point
