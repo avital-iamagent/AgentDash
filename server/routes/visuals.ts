@@ -78,8 +78,7 @@ async function generateImage(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_API_KEY not set in environment");
 
-  // Model ID may need adjustment — verify against Google AI Studio model list
-  const model = "gemini-2.0-flash-preview-image-generation";
+  const model = "gemini-3.1-flash-image-preview";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const response = await fetch(url, {
