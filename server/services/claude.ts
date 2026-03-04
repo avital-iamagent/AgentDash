@@ -27,8 +27,7 @@ async function readPhaseHistory(projectDir: string, phase: string): Promise<stri
     return phaseEntries
       .map((e) => {
         const role = e.role === "user" ? "User" : "Assistant";
-        // Keep assistant summaries short to avoid overwhelming the context
-        const limit = e.role === "assistant" ? 400 : 600;
+        const limit = 10000;
         const content = e.content.length > limit ? e.content.slice(0, limit) + "…" : e.content;
         return `${role}: ${content}`;
       })
