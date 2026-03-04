@@ -11,6 +11,7 @@ interface AgentDashConfig {
   tts?: boolean;
   port?: number;
   installPath?: string;
+  googleApiKey?: string;
 }
 
 const CONFIG_PATH = path.join(
@@ -105,6 +106,9 @@ const projectRoot = config.installPath || path.resolve(__dirname, "..");
 process.env.PORT = String(port);
 process.env.AGENTDASH_CONFIG = CONFIG_PATH;
 process.env.AGENTDASH_ROOT = projectRoot;
+if (config.googleApiKey && !process.env.GOOGLE_API_KEY) {
+  process.env.GOOGLE_API_KEY = config.googleApiKey;
+}
 
 console.log(`Starting AgentDash on http://localhost:${port} ...`);
 

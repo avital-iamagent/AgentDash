@@ -169,6 +169,33 @@ Ask about TTS:
 
 Update `~/.agentdash/config.json` with their TTS preference. Read-modify-write to preserve other settings.
 
+Then ask about Nano Banana (Visuals):
+
+> 🍌 **Nano Banana** — Generate UI mockup images from plain-English descriptions.
+>
+> This powers the **Visuals** tab in the tasks phase. You describe a component (e.g. "a login form with dark theme") and Nano Banana generates a mockup image using Google's Gemini image model.
+>
+> **To use it, you'll need a Google API key** with the Generative Language API enabled. You can get one free at [Google AI Studio](https://aistudio.google.com/apikey).
+>
+> Want to enable Nano Banana?
+>
+> _(yes / no)_
+
+If they say **yes**:
+- Ask for their API key:
+  > 🔑 Paste your Google API key (it starts with `AIza...`):
+- Validate it's non-empty and starts with `AIza`. If not, warn and ask again.
+- Store it in `~/.agentdash/config.json` as `googleApiKey`.
+- Print: `  ✅  Nano Banana enabled — Visuals tab will be active`
+- 💡 **Important:** Also add the key to the environment so the server can use it. Append to `~/.zshrc` (if not already present):
+  ```
+  export GOOGLE_API_KEY="<their-key>"
+  ```
+  Print: `  ✅  GOOGLE_API_KEY added to ~/.zshrc`
+
+If they say **no**:
+- Print: `  ☐  Nano Banana skipped — you can set it up later by adding GOOGLE_API_KEY to your environment`
+
 Then ask about port:
 
 > 🌐 **Port** — AgentDash runs on port `3141` by default.
@@ -240,6 +267,7 @@ Print this final summary:
 ║                                          ║
 ║   📂  App:    <path>                     ║
 ║   🔊  TTS:    <enabled/disabled>         ║
+║   🍌  Visuals: <enabled/disabled>        ║
 ║   🌐  Port:   <port>                     ║
 ║   🔧  CLI:    ~/.agentdash/bin/agentdash ║
 ║                                          ║

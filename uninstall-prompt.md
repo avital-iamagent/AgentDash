@@ -41,8 +41,9 @@ If the install path is inside `~/.agentdash/` (e.g., `~/.agentdash/app/`), it wi
 1. Check if `~/.zshrc` contains an AgentDash PATH entry.
 2. If found, remove the AgentDash block (the comment and export line):
    - Use `sed` to remove lines containing `# AgentDash` and the `PATH` line referencing `.agentdash/bin`.
-3. Tell the user: "Cleaned up PATH entry from `~/.zshrc`."
-4. If no entry was found, say: "No PATH entry found in `~/.zshrc` — nothing to clean up."
+3. Also check for and remove the `GOOGLE_API_KEY` export line if it exists (the one added by the installer for Nano Banana/Visuals).
+4. Tell the user: "Cleaned up PATH entry from `~/.zshrc`." (and mention GOOGLE_API_KEY removal if applicable)
+5. If no entries were found, say: "No PATH entry found in `~/.zshrc` — nothing to clean up."
 
 ## Step 6: Done
 
