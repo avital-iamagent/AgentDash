@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAppStore } from "./stores/appStore";
-import { useWebSocket } from "./hooks/useWebSocket";
+import { useWebSocket, subscribeToFileChanges } from "./hooks/useWebSocket";
 import { useTTS } from "./hooks/useTTS";
 import { useMeta } from "./hooks/usePhaseState";
 import StartScreen from "./components/start/StartScreen";
@@ -43,6 +43,19 @@ function Dashboard() {
   const showWelcome = useAppStore((s) => s.showWelcome);
   const setShowWelcome = useAppStore((s) => s.setShowWelcome);
   const [activeTab, setActiveTab] = useState<TabName>("data");
+  const [newVisualsCount, setNewVisualsCount] = useState(0);
+  const activeTabRef = useRef<TabName>(activeTab);
+  activeTabRef.current = activeTab;
+
+  // Listen for new visuals arriving while on a different tab
+  useEffect(() => {
+    return subscribeToFileChanges((_phase, file) => {
+      if (file.includes("visuals/index.json") && activeTabRef.current !== "visuals") {
+        setNewVisualsCount((c) => c + 1);
+      }
+    });
+  }, []);
+
   const [streamPanelHeight, setStreamPanelHeight] = useState(DEFAULT_STREAM_HEIGHT);
   const hasStreamContent = useAppStore(
     (s) => s.history.length > 0 || !!s.streamingContent || s.isStreaming || !!s.error
@@ -78,6 +91,7 @@ function Dashboard() {
   // Reset tab to "data" when phase changes
   useEffect(() => {
     setActiveTab("data");
+    setNewVisualsCount(0);
   }, [activePhase]);
 
   // Initialize WebSocket connection
@@ -133,16 +147,26 @@ function Dashboard() {
             const tabColor = tab.key === "notes"
               ? "var(--color-phase-research)"
               : `var(--color-phase-${activePhase})`;
+            const showBadge = tab.key === "visuals" && !isActive && newVisualsCount > 0;
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  if (tab.key === "visuals") setNewVisualsCount(0);
+                }}
                 className="relative px-3 py-2 text-sm font-medium transition-colors"
                 style={{
                   color: isActive ? tabColor : "var(--color-ink-muted)",
                 }}
               >
                 {tab.label}
+                {showBadge && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse"
+                    style={{ backgroundColor: tabColor }}
+                  />
+                )}
                 {isActive && (
                   <span
                     className="absolute bottom-0 left-0 right-0 h-[2px]"

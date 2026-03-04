@@ -2,6 +2,7 @@ import { watch } from "chokidar";
 import { WebSocketServer } from "ws";
 import path from "path";
 import { getActiveProjectDir } from "../routes/project.js";
+import { processVisualRequest } from "../routes/visuals.js";
 import { PHASE_NAMES } from "../types/index.js";
 
 let watcher: ReturnType<typeof watch> | null = null;
@@ -47,6 +48,17 @@ export function startWatching(wss: WebSocketServer) {
 
   watcher.on("add", (filePath) => {
     const relative = path.relative(agentdashDir, filePath);
+
+    // Auto-process visual queue requests
+    const queuePrefix = path.join("tasks", "visuals", "queue");
+    if (relative.startsWith(queuePrefix + path.sep) && relative.endsWith(".json")) {
+      const projectDir = getActiveProjectDir();
+      if (projectDir) {
+        processVisualRequest(projectDir, filePath);
+      }
+      return; // Don't broadcast queue files — the index.json update will trigger a broadcast
+    }
+
     const phase = detectPhase(relative);
 
     const message = JSON.stringify({

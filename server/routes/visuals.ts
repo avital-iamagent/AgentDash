@@ -101,6 +101,54 @@ async function generateImage(prompt: string): Promise<string> {
   return base64;
 }
 
+/**
+ * Process a visual request from the queue directory (fire-and-forget).
+ * Reads the request JSON, generates an image, updates index.json, deletes the request file.
+ */
+export async function processVisualRequest(projectDir: string, requestPath: string): Promise<void> {
+  try {
+    const raw = await fs.readFile(requestPath, "utf-8");
+    const request = JSON.parse(raw) as { id?: string; userPrompt?: string; taskId?: string };
+
+    const userPrompt = request.userPrompt?.trim();
+    if (!userPrompt) {
+      console.log(`[AgentDash] Skipping visual request with empty prompt: ${requestPath}`);
+      await fs.unlink(requestPath).catch(() => {});
+      return;
+    }
+
+    console.log(`[AgentDash] Processing visual request: ${userPrompt.slice(0, 60)}...`);
+
+    const imagePrompt = await craftImagePrompt(userPrompt);
+    const base64 = await generateImage(imagePrompt);
+
+    const id = request.id || crypto.randomUUID();
+    const filename = `${id}.png`;
+    const visualsDir = getVisualsDir(projectDir);
+    await fs.mkdir(visualsDir, { recursive: true });
+    await fs.writeFile(path.join(visualsDir, filename), Buffer.from(base64, "base64"));
+
+    const entry: VisualEntry = {
+      id,
+      filename,
+      userPrompt,
+      imagePrompt,
+      createdAt: new Date().toISOString(),
+    };
+
+    const index = await readIndex(projectDir);
+    index.images.push(entry);
+    await writeIndex(projectDir, index);
+
+    console.log(`[AgentDash] Visual generated: ${filename}`);
+  } catch (err) {
+    console.error(`[AgentDash] Visual request failed:`, err instanceof Error ? err.message : err);
+  } finally {
+    // Always clean up the request file
+    await fs.unlink(requestPath).catch(() => {});
+  }
+}
+
 // POST /api/visuals/generate
 visualsRoutes.post("/generate", async (req, res) => {
   const dir = getActiveProjectDir();

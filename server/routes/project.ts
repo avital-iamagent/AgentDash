@@ -210,6 +210,8 @@ projectRoutes.post("/open", async (req, res) => {
       await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
     }
 
+
+
     await scaffoldClaudeDir(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, meta.projectName || path.basename(resolvedDir));
@@ -243,6 +245,7 @@ projectRoutes.post("/create", async (req, res) => {
       path.join(agentdashDir, "artifacts"),
       path.join(agentdashDir, "research-notes"),
       path.join(agentdashDir, "templates"),
+      path.join(agentdashDir, "tasks", "visuals", "queue"),
     ];
     for (const d of dirs) {
       await fs.mkdir(d, { recursive: true });

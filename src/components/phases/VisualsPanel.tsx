@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { subscribeToFileChanges } from "../../hooks/useWebSocket";
 
 interface VisualEntry {
   id: string;
@@ -16,12 +17,25 @@ export default function VisualsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchImages = useCallback(() => {
     fetch("/api/visuals/list")
       .then((r) => r.json())
       .then((data) => setImages(((data.images ?? []) as VisualEntry[]).slice().reverse()))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchImages();
+  }, [fetchImages]);
+
+  // Refetch when visuals/index.json changes (auto-generated images)
+  useEffect(() => {
+    return subscribeToFileChanges((_phase, file) => {
+      if (file.includes("visuals/index.json")) {
+        fetchImages();
+      }
+    });
+  }, [fetchImages]);
 
   async function handleGenerate() {
     if (!userPrompt.trim() || generating) return;
