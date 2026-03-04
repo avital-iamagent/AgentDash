@@ -28,24 +28,5 @@ This is the same state file used during planning — tasks already exist here. D
 }
 ```
 
-## Visual Generation (fire-and-forget)
-When you complete a UI-related task, auto-generate a reference mockup by writing a request file:
-
-**Path:** `.agentdash/tasks/visuals/queue/{uuid}.json`
-
-```json
-{
-  "id": "uuid",
-  "userPrompt": "A dark-themed sidebar with navigation icons and an active state highlight",
-  "taskId": "the-task-id",
-  "requestedAt": "ISO-8601"
-}
-```
-
-- The server picks up the file automatically and generates the image in the background
-- Do NOT wait for the result — continue to the next task immediately
-- Describe visual appearance (colors, layout, typography), not code or implementation details
-- Only generate visuals for tasks that produce visible UI — skip backend-only or config tasks
-
 ## Adding tasks mid-execution
 Tasks can be added to `tasks/state.json` at any time (by you or the user). Treat newly added tasks the same as existing ones — work through them in dependency order.

@@ -102,27 +102,17 @@ async function generateImage(prompt: string): Promise<string> {
 }
 
 /**
- * Process a visual request from the queue directory (fire-and-forget).
- * Reads the request JSON, generates an image, updates index.json, deletes the request file.
+ * Auto-generate a visual from a UI description (fire-and-forget).
+ * Called by the prompt handler when Claude's response describes UI components.
  */
-export async function processVisualRequest(projectDir: string, requestPath: string): Promise<void> {
+export async function autoGenerateVisual(projectDir: string, uiDescription: string): Promise<string | null> {
   try {
-    const raw = await fs.readFile(requestPath, "utf-8");
-    const request = JSON.parse(raw) as { id?: string; userPrompt?: string; taskId?: string };
+    console.log(`[AgentDash] Auto-generating visual: ${uiDescription.slice(0, 60)}...`);
 
-    const userPrompt = request.userPrompt?.trim();
-    if (!userPrompt) {
-      console.log(`[AgentDash] Skipping visual request with empty prompt: ${requestPath}`);
-      await fs.unlink(requestPath).catch(() => {});
-      return;
-    }
-
-    console.log(`[AgentDash] Processing visual request: ${userPrompt.slice(0, 60)}...`);
-
-    const imagePrompt = await craftImagePrompt(userPrompt);
+    const imagePrompt = await craftImagePrompt(uiDescription);
     const base64 = await generateImage(imagePrompt);
 
-    const id = request.id || crypto.randomUUID();
+    const id = crypto.randomUUID();
     const filename = `${id}.png`;
     const visualsDir = getVisualsDir(projectDir);
     await fs.mkdir(visualsDir, { recursive: true });
@@ -131,7 +121,7 @@ export async function processVisualRequest(projectDir: string, requestPath: stri
     const entry: VisualEntry = {
       id,
       filename,
-      userPrompt,
+      userPrompt: uiDescription,
       imagePrompt,
       createdAt: new Date().toISOString(),
     };
@@ -140,12 +130,135 @@ export async function processVisualRequest(projectDir: string, requestPath: stri
     index.images.push(entry);
     await writeIndex(projectDir, index);
 
-    console.log(`[AgentDash] Visual generated: ${filename}`);
+    console.log(`[AgentDash] Visual auto-generated: ${filename}`);
+    return id;
   } catch (err) {
-    console.error(`[AgentDash] Visual request failed:`, err instanceof Error ? err.message : err);
-  } finally {
-    // Always clean up the request file
-    await fs.unlink(requestPath).catch(() => {});
+    console.error(`[AgentDash] Auto-visual generation failed:`, err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+/**
+ * Use Haiku to match a UI description to the most relevant task.
+ * Returns the task ID or null if no match.
+ */
+export async function matchTaskForDesign(projectDir: string, uiDescription: string): Promise<string | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const statePath = path.join(projectDir, ".agentdash", "tasks", "state.json");
+    const raw = await fs.readFile(statePath, "utf-8");
+    const state = JSON.parse(raw);
+    const tasks = state.tasks as { id: string; title: string; description: string }[];
+    if (!tasks || tasks.length === 0) return null;
+
+    const taskList = tasks.map((t) => `${t.id}: ${t.title}`).join("\n");
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 100,
+        system:
+          "You match a UI design description to the most relevant task from a list. " +
+          "Respond with ONLY the task ID (UUID) of the best match. " +
+          "If no task is a reasonable match, respond with exactly: NO_MATCH",
+        messages: [{
+          role: "user",
+          content: `UI description:\n${uiDescription.slice(0, 2000)}\n\nTasks:\n${taskList}`,
+        }],
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as any;
+    const result = data.content?.[0]?.text?.trim();
+    if (!result || result === "NO_MATCH") return null;
+
+    // Validate that the returned ID actually exists in the task list
+    const matched = tasks.find((t) => t.id === result);
+    return matched ? result : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Link a visual to a task by updating the task's designNotes and visualId in state.json.
+ */
+export async function linkVisualToTask(
+  projectDir: string,
+  taskId: string,
+  visualId: string,
+  designNotes: string
+): Promise<void> {
+  try {
+    const statePath = path.join(projectDir, ".agentdash", "tasks", "state.json");
+    const raw = await fs.readFile(statePath, "utf-8");
+    const state = JSON.parse(raw);
+
+    const task = state.tasks?.find((t: any) => t.id === taskId);
+    if (!task) return;
+
+    task.designNotes = designNotes;
+    task.visualId = visualId;
+    state.updatedAt = new Date().toISOString();
+    state.updatedBy = "claude-code";
+
+    await fs.writeFile(statePath, JSON.stringify(state, null, 2));
+    console.log(`[AgentDash] Linked visual ${visualId.slice(0, 8)}... to task "${task.title}"`);
+  } catch (err) {
+    console.error(`[AgentDash] Failed to link visual to task:`, err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Use Haiku to detect if text describes UI components and extract a visual description.
+ * Returns the description to visualize, or null if the text isn't UI-related.
+ */
+export async function detectUIDescription(text: string): Promise<string | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+
+  // Skip very short responses
+  if (text.length < 100) return null;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 300,
+        system:
+          "You analyze text to determine if it describes a UI component, screen, or visual interface design. " +
+          "If it does, extract a concise visual description suitable for image generation — focus on appearance " +
+          "(layout, colors, typography, spacing, visual elements) not code or logic. " +
+          "If the text does NOT describe any UI or visual interface, respond with exactly: NO_UI\n" +
+          "If it DOES, respond with ONLY the visual description — no preamble.",
+        messages: [{ role: "user", content: text.slice(0, 4000) }],
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as any;
+    const result = data.content?.[0]?.text?.trim();
+    if (!result || result === "NO_UI") return null;
+    return result;
+  } catch {
+    return null;
   }
 }
 

@@ -152,6 +152,40 @@ export default function TaskBoard() {
                   {/* Description */}
                   <p className="text-xs text-ink-muted mt-1">{task.description}</p>
 
+                  {/* Design visual + notes */}
+                  {(task.visualId || task.designNotes) && (
+                    <div
+                      className="mt-2 rounded-lg p-2 space-y-1.5"
+                      style={{
+                        backgroundColor: "color-mix(in srgb, var(--color-phase-architecture) 6%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--color-phase-architecture) 20%, transparent)",
+                      }}
+                    >
+                      <span
+                        className="text-[10px] font-mono font-medium uppercase tracking-wide"
+                        style={{ color: "var(--color-phase-architecture)" }}
+                      >
+                        Design
+                      </span>
+                      {task.visualId && (
+                        <a
+                          href={`/api/visuals/image/${task.visualId}.png`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={`/api/visuals/image/${task.visualId}.png`}
+                            alt="Design visual"
+                            className="w-full max-w-[200px] rounded border border-edge cursor-pointer hover:opacity-80 transition-opacity"
+                          />
+                        </a>
+                      )}
+                      {task.designNotes && (
+                        <p className="text-[11px] text-ink-muted">{task.designNotes}</p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Implementation notes */}
                   {task.notes && (
                     <p className="text-xs text-ink-faint mt-1 italic">{task.notes}</p>

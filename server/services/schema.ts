@@ -154,6 +154,8 @@ const taskItemSchema = z.object({
   milestone: z.string().optional(),
   commits: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  designNotes: z.string().optional(),
+  visualId: z.string().optional(),
 });
 
 const milestoneSchema = z.object({

@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { sendPrompt, runResearch, runReview } from "../services/claude.js";
 import { getActiveProjectDir } from "../routes/project.js";
 import { askClientPermission, resolvePermission } from "../services/permissions.js";
+import { detectUIDescription, autoGenerateVisual, matchTaskForDesign, linkVisualToTask } from "../routes/visuals.js";
 
 interface PromptMessage {
   type: "prompt";
@@ -106,6 +107,8 @@ export function setupPromptHandler(wss: WebSocketServer) {
 
       // Track whether response_done has been sent to prevent duplicates
       let responseDoneSent = false;
+      // Accumulate response text for auto-visual detection
+      let accumulatedText = "";
 
       function sendResponseDone() {
         if (!responseDoneSent) {
@@ -130,9 +133,25 @@ export function setupPromptHandler(wss: WebSocketServer) {
         for await (const chunk of generator) {
           if (responseDoneSent) break; // abort already handled
           send(ws, chunk);
+          if (chunk.type === "assistant_message" && typeof chunk.content === "string") {
+            accumulatedText = chunk.content;
+          }
           if (chunk.type === "response_done") {
             responseDoneSent = true;
           }
+        }
+
+        // Fire-and-forget: check if the response described UI, auto-generate a visual, and link to task
+        if (accumulatedText && msg.type === "prompt") {
+          detectUIDescription(accumulatedText).then(async (uiDesc) => {
+            if (!uiDesc || !projectDir) return;
+            const visualId = await autoGenerateVisual(projectDir, uiDesc);
+            if (!visualId) return;
+            const taskId = await matchTaskForDesign(projectDir, uiDesc);
+            if (taskId) {
+              await linkVisualToTask(projectDir, taskId, visualId, uiDesc);
+            }
+          });
         }
       } catch (err) {
         const isAbort = err instanceof Error &&
