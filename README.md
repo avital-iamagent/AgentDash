@@ -60,6 +60,17 @@ npm install
 npm run build
 ```
 
+## Upgrading
+
+```bash
+cd ~/.agentdash/app   # or wherever you installed it
+git pull
+npm install
+npm run build
+```
+
+Your project data in `.agentdash/` directories is untouched — upgrades only update the app itself.
+
 ## Usage
 
 ```bash
