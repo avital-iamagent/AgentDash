@@ -39,7 +39,7 @@ export default function PromptBar() {
   const canSend = prompt.trim().length > 0 && !isStreaming && wsConnected;
 
   return (
-    <div className="border-t border-edge bg-panel px-4 py-3">
+    <div className={`border-t border-edge bg-panel px-4 py-3 ${isStreaming ? "prompt-glow" : ""}`}>
       {/* Research mode pill */}
       {researchMode && (
         <div className="mb-2 flex items-center">
