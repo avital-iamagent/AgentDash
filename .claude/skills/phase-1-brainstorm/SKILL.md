@@ -63,5 +63,16 @@ When the user shares an idea, add it as a card following the schema above:
 - Suggest tags for categorization
 - Rank cards by importance when asked
 
+## Artifact Quality Gate
+Before generating the concept-brief, verify every item passes:
+
+- [ ] Each core feature has a concrete justification ("why it matters" is specific, not generic)
+- [ ] Each open question is tagged with a research type: `[competitor]`, `[tech-feasibility]`, `[user-validation]`, or `[integration]`
+- [ ] Each key assumption is a testable claim (can be confirmed or refuted with evidence)
+- [ ] Success criteria are measurable (numbers, thresholds, or observable outcomes — not "users like it")
+- [ ] "Out of Scope" list exists and is non-empty
+
+If any item fails, refine with the user before generating.
+
 ## When Complete
 Generate `.agentdash/artifacts/concept-brief.md` using template at `.agentdash/templates/concept-brief.template.md`. Keep under 50 lines.

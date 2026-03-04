@@ -45,7 +45,20 @@ graph LR
 | [risk] | [approach] |
 
 ## What Environment Setup Needs
-- [Dependency to install]
-- [Config to set up]
-- [Tool to configure]
-- [File structure to create]
+
+### Dependencies
+<!-- List each with exact version: package@version -->
+- [package@version] — [purpose]
+- [package@version] — [purpose]
+
+### Configuration Files
+- [filename] — [purpose and key settings]
+- [filename] — [purpose and key settings]
+
+### Folder Structure
+- [path/] — [what lives here]
+- [path/] — [what lives here]
+
+### Dev Tooling
+- [tool] — [purpose, e.g. "ESLint for linting", "Vitest for unit tests"]
+- [tool] — [purpose]

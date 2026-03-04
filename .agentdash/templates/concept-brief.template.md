@@ -26,13 +26,15 @@
 - [Item]
 
 ## Key Assumptions (to be validated in research)
-- [Assumption]
-- [Assumption]
+<!-- Each assumption must be a testable claim — something research can confirm or refute with evidence. -->
+- [Testable claim, e.g. "Users will prefer CLI over GUI for this workflow"]
+- [Testable claim]
 
 ## Open Questions for Research
-- [Question that needs investigation]
-- [Question that needs investigation]
-- [Question that needs investigation]
+<!-- Tag each question: [competitor], [tech-feasibility], [user-validation], or [integration] -->
+- `[competitor]` [Question that needs investigation]
+- `[tech-feasibility]` [Question that needs investigation]
+- `[user-validation]` [Question that needs investigation]
 
 ## Competitive Positioning
 [One sentence on how this differs from existing solutions]

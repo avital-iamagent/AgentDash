@@ -32,5 +32,8 @@
 - [Item]: [why unresolved, when to revisit]
 
 ## What Architecture Needs to Address
-- [Constraint or requirement for the architect]
-- [Constraint or requirement for the architect]
+<!-- Tag each constraint: [functional], [scale], [integration], or [technical-boundary]. Be specific — not "handle scale" but "support N concurrent users". -->
+- `[functional]` [Specific constraint, e.g. "Must support offline-first data sync"]
+- `[scale]` [Specific constraint, e.g. "Handle 500 concurrent WebSocket connections"]
+- `[integration]` [Specific constraint, e.g. "Authenticate via GitHub OAuth"]
+- `[technical-boundary]` [Specific constraint, e.g. "Must run in Node.js 20+ only"]

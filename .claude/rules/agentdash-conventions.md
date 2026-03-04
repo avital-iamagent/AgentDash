@@ -8,7 +8,7 @@
 
 ## Artifacts
 - Max 50 lines for concept-brief, 45 for research-decisions
-- Max 55 lines for architecture-spec, 40 for environment-ready
+- Max 80 lines for architecture-spec, 40 for environment-ready
 - Max 50 lines for task-breakdown
 - Use the template from `.agentdash/templates/`
 - Artifacts are the ONLY thing the next phase reads from you

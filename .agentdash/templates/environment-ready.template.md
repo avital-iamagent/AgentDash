@@ -36,3 +36,8 @@
 - [x] Server starts without errors
 - [x] Frontend renders in browser
 - [x] [Other verification steps performed]
+
+## Ready for Implementation
+- [ ] All scaffolded components/files from architecture exist on disk
+- [ ] Dev loop works end-to-end (edit → save → see change)
+- [ ] Unresolved blockers: [none / list any remaining issues]
