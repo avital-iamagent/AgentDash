@@ -16,13 +16,15 @@ const phaseMetaSchema = z.object({
 export const metaSchema = z.object({
   projectName: z.string(),
   createdAt: z.string(),
-  activePhase: z.enum(["brainstorm", "research", "architecture", "environment", "tasks"]),
+  activePhase: z.enum(["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"]),
   phases: z.object({
     brainstorm: phaseMetaSchema,
     research: phaseMetaSchema,
     architecture: phaseMetaSchema,
     environment: phaseMetaSchema,
     tasks: phaseMetaSchema,
+    design: phaseMetaSchema,
+    coding: phaseMetaSchema,
   }),
   git: z.object({
     enabled: z.boolean(),
@@ -172,6 +174,23 @@ export const tasksStateSchema = z.object({
   currentTask: z.string().nullable(),
 });
 
+// --- design/state.json ---
+export const designPhaseStateSchema = z.object({
+  updatedAt: z.string().nullable(),
+  updatedBy: z.string(),
+  reviewedTasks: z.array(z.string()),
+  designTheme: z.string().nullable(),
+  colorPalette: z.string().nullable(),
+  typography: z.string().nullable(),
+  notes: z.string().nullable(),
+});
+
+// --- coding/state.json ---
+export const codingStateSchema = z.object({
+  updatedAt: z.string().nullable(),
+  updatedBy: z.string(),
+});
+
 // --- Schema lookup by phase name ---
 export const phaseSchemas = {
   brainstorm: brainstormStateSchema,
@@ -179,4 +198,6 @@ export const phaseSchemas = {
   architecture: architectureStateSchema,
   environment: environmentStateSchema,
   tasks: tasksStateSchema,
+  design: designPhaseStateSchema,
+  coding: codingStateSchema,
 } as const;

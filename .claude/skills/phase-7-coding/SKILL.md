@@ -1,5 +1,5 @@
 ---
-name: phase-6-coding
+name: phase-7-coding
 description: Execution mode for the tasks phase. Use when implementing tasks from the breakdown. Master Engineer mode. Operates on tasks/state.json directly.
 ---
 
@@ -13,6 +13,7 @@ You implement tasks from the task breakdown. Work through them one by one, commi
 - Update the task in `tasks/state.json`: set `status`, `commits`, and optionally `notes`
 - Set `currentTask` to the ID of the task you're working on
 - If blocked, set `status: "blocked"` and explain in `notes`
+- Reference `designNotes` and `visualId` on tasks during implementation for UI work
 
 ## Working State
 Read and update: `.agentdash/tasks/state.json`

@@ -10,6 +10,7 @@
 - Max 50 lines for concept-brief, 45 for research-decisions
 - Max 80 lines for architecture-spec, 40 for environment-ready
 - Max 50 lines for task-breakdown
+- Max 60 lines for design-brief
 - Use the template from `.agentdash/templates/`
 - Artifacts are the ONLY thing the next phase reads from you
 
@@ -19,5 +20,5 @@
 - Set `activePhase` to the next phase name
 
 ## Naming
-- Phase directories: brainstorm, research, architecture, environment, tasks
-- Artifact files: concept-brief.md, research-decisions.md, architecture-spec.md, environment-ready.md, task-breakdown.md
+- Phase directories: brainstorm, research, architecture, environment, tasks, design, coding
+- Artifact files: concept-brief.md, research-decisions.md, architecture-spec.md, environment-ready.md, task-breakdown.md, design-brief.md

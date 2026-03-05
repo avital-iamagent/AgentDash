@@ -126,6 +126,8 @@ function initialMeta(projectName: string): object {
       architecture: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
       environment: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
       tasks: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
+      design: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
+      coding: { status: "locked", startedAt: null, completedAt: null, artifactApproved: false, reviewReport: null },
     },
     git: { enabled: false, branch: null, lastCommit: null, remoteUrl: null, authMethod: null, gitDismissed: false },
   };
@@ -137,6 +139,8 @@ const INITIAL_STATES: Record<string, object> = {
   architecture: { updatedAt: null, updatedBy: "claude-code", components: [], decisions: [], diagrams: [], risks: [] },
   environment: { updatedAt: null, updatedBy: "claude-code", checklist: [], dependencies: [], configs: [], verification: [] },
   tasks: { updatedAt: null, updatedBy: "claude-code", tasks: [], milestones: [], currentTask: null },
+  design: { updatedAt: null, updatedBy: "claude-code", reviewedTasks: [], designTheme: null, colorPalette: null, typography: null, notes: null },
+  coding: { updatedAt: null, updatedBy: "claude-code" },
 };
 
 // --- Routes ---
@@ -242,6 +246,8 @@ projectRoutes.post("/create", async (req, res) => {
       path.join(agentdashDir, "architecture"),
       path.join(agentdashDir, "environment"),
       path.join(agentdashDir, "tasks"),
+      path.join(agentdashDir, "design"),
+      path.join(agentdashDir, "coding"),
       path.join(agentdashDir, "artifacts"),
       path.join(agentdashDir, "research-notes"),
       path.join(agentdashDir, "templates"),

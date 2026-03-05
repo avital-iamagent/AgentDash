@@ -27,6 +27,16 @@ const PHASE_INFO: Record<PhaseName, { label: string; personality: string; descri
     personality: "Clear-Headed PM",
     description: "Breaking down work, ordering dependencies, defining done",
   },
+  design: {
+    label: "Design",
+    personality: "Creative Director",
+    description: "Reviewing UI tasks, discussing visual design, generating reference mockups",
+  },
+  coding: {
+    label: "Coding",
+    personality: "Master Engineer",
+    description: "Implementing tasks, committing code, tracking progress",
+  },
 };
 
 export default function PhaseHeader() {

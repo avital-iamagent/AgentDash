@@ -15,6 +15,7 @@ import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
 import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
+import DesignBoard from "./components/phases/DesignBoard";
 import VisualsPanel from "./components/phases/VisualsPanel";
 import ResearchNotesPanel from "./components/notes/ResearchNotesPanel";
 import ResearchSaveModal from "./components/notes/ResearchSaveModal";
@@ -31,10 +32,10 @@ type TabName = "data" | "artifact" | "review" | "notes" | "visuals";
 
 const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
   { key: "data", label: "Board" },
-  { key: "artifact", label: "Handoff", hideForPhases: ["tasks"] },
-  { key: "review", label: "Validate", hideForPhases: ["tasks"] },
-  { key: "notes", label: "Research Notes", hideForPhases: ["tasks"] },
-  { key: "visuals", label: "Visuals", hideForPhases: ["brainstorm", "research", "architecture", "environment"] },
+  { key: "artifact", label: "Handoff", hideForPhases: ["tasks", "design", "coding"] },
+  { key: "review", label: "Validate", hideForPhases: ["tasks", "design", "coding"] },
+  { key: "notes", label: "Research Notes", hideForPhases: ["tasks", "design", "coding"] },
+  { key: "visuals", label: "Visuals", hideForPhases: ["brainstorm", "research", "architecture", "environment", "coding"] },
 ];
 
 function Dashboard() {
@@ -225,6 +226,8 @@ const PHASE_VIEWS: Record<PhaseName, React.ComponentType> = {
   architecture: ArchitectureView,
   environment: EnvironmentChecklist,
   tasks: TaskBoard,
+  design: DesignBoard,
+  coding: TaskBoard,
 };
 
 function PhaseContent({ phase }: { phase: PhaseName }) {

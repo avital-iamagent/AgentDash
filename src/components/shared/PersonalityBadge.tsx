@@ -6,6 +6,8 @@ const PERSONALITIES: Record<PhaseName, string> = {
   architecture: "Pragmatic Engineer",
   environment: "Meticulous Ops",
   tasks: "Clear-Headed PM",
+  design: "Creative Director",
+  coding: "Master Engineer",
 };
 
 interface PersonalityBadgeProps {
