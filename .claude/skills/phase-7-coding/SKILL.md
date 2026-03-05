@@ -1,6 +1,6 @@
 ---
 name: phase-7-coding
-description: Execution mode for the tasks phase. Use when implementing tasks from the breakdown. Master Engineer mode. Operates on tasks/state.json directly.
+description: Coding phase. Use when implementing tasks from the breakdown. Master Engineer mode. Operates on tasks/state.json directly.
 ---
 
 ## Your Role — The Master Engineer
