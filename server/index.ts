@@ -19,7 +19,7 @@ const app = express();
 
 // CORS — permissive for local dev, lock down in production
 app.use(cors({ origin: process.env.CORS_ORIGIN || true }));
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 
 // REST routes
 app.use("/api/project", projectRoutes);
