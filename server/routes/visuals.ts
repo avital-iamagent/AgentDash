@@ -105,37 +105,32 @@ async function generateImage(prompt: string): Promise<string> {
  * Auto-generate a visual from a UI description (fire-and-forget).
  * Called by the prompt handler when Claude's response describes UI components.
  */
-export async function autoGenerateVisual(projectDir: string, uiDescription: string): Promise<string | null> {
-  try {
-    console.log(`[AgentDash] Auto-generating visual: ${uiDescription.slice(0, 60)}...`);
+export async function autoGenerateVisual(projectDir: string, uiDescription: string): Promise<string> {
+  console.log(`[AgentDash] Auto-generating visual: ${uiDescription.slice(0, 60)}...`);
 
-    const imagePrompt = await craftImagePrompt(uiDescription);
-    const base64 = await generateImage(imagePrompt);
+  const imagePrompt = await craftImagePrompt(uiDescription);
+  const base64 = await generateImage(imagePrompt);
 
-    const id = crypto.randomUUID();
-    const filename = `${id}.png`;
-    const visualsDir = getVisualsDir(projectDir);
-    await fs.mkdir(visualsDir, { recursive: true });
-    await fs.writeFile(path.join(visualsDir, filename), Buffer.from(base64, "base64"));
+  const id = crypto.randomUUID();
+  const filename = `${id}.png`;
+  const visualsDir = getVisualsDir(projectDir);
+  await fs.mkdir(visualsDir, { recursive: true });
+  await fs.writeFile(path.join(visualsDir, filename), Buffer.from(base64, "base64"));
 
-    const entry: VisualEntry = {
-      id,
-      filename,
-      userPrompt: uiDescription,
-      imagePrompt,
-      createdAt: new Date().toISOString(),
-    };
+  const entry: VisualEntry = {
+    id,
+    filename,
+    userPrompt: uiDescription,
+    imagePrompt,
+    createdAt: new Date().toISOString(),
+  };
 
-    const index = await readIndex(projectDir);
-    index.images.push(entry);
-    await writeIndex(projectDir, index);
+  const index = await readIndex(projectDir);
+  index.images.push(entry);
+  await writeIndex(projectDir, index);
 
-    console.log(`[AgentDash] Visual auto-generated: ${filename}`);
-    return id;
-  } catch (err) {
-    console.error(`[AgentDash] Auto-visual generation failed:`, err instanceof Error ? err.message : err);
-    return null;
-  }
+  console.log(`[AgentDash] Visual auto-generated: ${filename}`);
+  return id;
 }
 
 /**

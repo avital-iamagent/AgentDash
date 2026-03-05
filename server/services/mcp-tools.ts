@@ -12,15 +12,18 @@ export function createAgentDashMcpServer(projectDir: string) {
       description: z.string().describe("Detailed visual description of the UI component to generate"),
     },
     async ({ description }) => {
-      const id = await autoGenerateVisual(projectDir, description);
-      if (!id) {
+      try {
+        const id = await autoGenerateVisual(projectDir, description);
         return {
-          content: [{ type: "text" as const, text: JSON.stringify({ error: "Image generation failed" }) }],
+          content: [{ type: "text" as const, text: JSON.stringify({ id, filename: `${id}.png` }) }],
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[AgentDash] generate_visual failed:`, message);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify({ error: message }) }],
         };
       }
-      return {
-        content: [{ type: "text" as const, text: JSON.stringify({ id, filename: `${id}.png` }) }],
-      };
     }
   );
 
