@@ -16,6 +16,9 @@ Thumbs.db
 # Local TLS certs
 .certs/
 
+# Local dev scripts
+scripts/
+
 # AgentDash state is tracked (it's the whole point)
 # But research notes are optional
 # .agentdash/research-notes/  <- uncomment to exclude

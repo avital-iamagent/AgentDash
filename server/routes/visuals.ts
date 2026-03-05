@@ -327,5 +327,10 @@ visualsRoutes.get("/image/:filename", async (req, res) => {
   }
 
   const filePath = path.join(getVisualsDir(dir), filename);
-  res.sendFile(filePath);
+  res.sendFile(filePath, { dotfiles: "allow" }, (err) => {
+    if (err && !res.headersSent) {
+      console.error(`[AgentDash] Failed to serve visual: ${filePath} — ${err.message}`);
+      res.status(404).json({ error: "Visual not found" });
+    }
+  });
 });
