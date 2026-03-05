@@ -11,10 +11,19 @@ You review UI-facing tasks from the task breakdown, discuss visual design with t
 
 1. Read `task-breakdown.md` artifact and `tasks/state.json` to identify UI-facing tasks
 2. For each UI-related task, discuss the design with the user — layout, colors, interactions
-3. Generate a reference visual for the task using the image generation tool
-4. Write `designNotes` and `visualId` back to the task in `tasks/state.json`
+3. Write a detailed, vivid visual description of the design (layout, colors, typography, spacing, visual elements) in your response — the system will auto-detect it and generate a reference image
+4. Write `designNotes` back to the task in `tasks/state.json` (the system auto-links `visualId`)
 5. Track reviewed tasks in `design/state.json`
 6. When all UI tasks are reviewed, produce the `design-brief.md` artifact
+
+## Image Generation
+
+Reference visuals are generated automatically. When your response describes a UI component or screen in detail, the system:
+1. Detects the UI description using AI
+2. Generates a reference mockup image via Gemini
+3. Links the visual to the matching task automatically
+
+To trigger image generation, include vivid visual descriptions — describe the appearance, colors, layout, typography, spacing, and style. The more visual detail you provide, the better the generated mockup. You can also generate images on demand by running: `curl -X POST http://localhost:3579/api/visuals/generate -H 'Content-Type: application/json' -d '{"userPrompt": "description of the visual"}'`
 
 ## Working State
 Read and update: `.agentdash/design/state.json`

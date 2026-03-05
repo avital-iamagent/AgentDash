@@ -1,4 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import fs from "fs/promises";
+import path from "path";
 import {
   shouldRegenerateSummary,
   generatePhaseSummary,
@@ -44,9 +46,22 @@ export async function* sendPrompt(
   if (userPrompt.trim() === "begin") {
     fullPrompt = `${skillPrefix} begin`;
   } else {
-    // Check if summaries need regeneration
-    if (await shouldRegenerateSummary(projectDir, phase)) {
-      await generatePhaseSummary(projectDir, phase);
+    // Check if any phase summaries need regeneration (not just current phase)
+    try {
+      const metaRaw = await fs.readFile(path.join(projectDir, ".agentdash", "meta.json"), "utf-8");
+      const meta = JSON.parse(metaRaw);
+      const activePhases = Object.entries(meta.phases || {})
+        .filter(([, p]: [string, any]) => p.status === "active" || p.status === "completed")
+        .map(([name]) => name);
+
+      const staleChecks = await Promise.all(
+        activePhases.map(async (p) => ({ phase: p, stale: await shouldRegenerateSummary(projectDir, p) }))
+      );
+      await Promise.all(
+        staleChecks.filter((r) => r.stale).map((r) => generatePhaseSummary(projectDir, r.phase))
+      );
+    } catch {
+      // meta.json unreadable — skip summary regeneration
     }
 
     const memory = await buildMemoryContext(projectDir, phase);
