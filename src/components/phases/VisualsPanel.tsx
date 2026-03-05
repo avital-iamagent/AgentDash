@@ -9,13 +9,107 @@ interface VisualEntry {
   createdAt: string;
 }
 
+function Lightbox({
+  image,
+  onClose,
+}: {
+  image: VisualEntry;
+  onClose: () => void;
+}) {
+  const imageUrl = `/api/visuals/image/${image.filename}`;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  function handleDownload() {
+    const a = document.createElement("a");
+    a.href = imageUrl;
+    a.download = image.filename;
+    a.click();
+  }
+
+  function handlePopOut() {
+    const w = window.open("", "_blank", "width=1000,height=700,resizable=yes,scrollbars=yes");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html>
+<html><head><title>${image.userPrompt.slice(0, 60)}</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}</style>
+</head><body><img src="${window.location.origin}${imageUrl}" /></body></html>`);
+    w.document.close();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-[90vw] max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Toolbar */}
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-white/60 truncate max-w-[60vw]">
+            {image.userPrompt}
+          </p>
+          <div className="flex items-center gap-1 shrink-0 ml-3">
+            <button
+              onClick={handleDownload}
+              className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              title="Download"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <button
+              onClick={handlePopOut}
+              className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              title="Open in new window"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              title="Close (Esc)"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        {/* Image */}
+        <img
+          src={imageUrl}
+          alt={image.userPrompt}
+          className="max-w-[90vw] max-h-[calc(90vh-2rem)] object-contain rounded-lg"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function VisualsPanel() {
   const [images, setImages] = useState<VisualEntry[]>([]);
   const [userPrompt, setUserPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<VisualEntry | null>(null);
 
   const fetchImages = useCallback(() => {
     fetch("/api/visuals/list")
@@ -75,6 +169,10 @@ export default function VisualsPanel() {
 
   return (
     <div className="space-y-5 animate-fade-up">
+      {lightboxImage && (
+        <Lightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
+      )}
+
       {/* Input area */}
       <div className="rounded-xl border border-edge bg-raised p-4 space-y-3">
         <label className="block text-xs font-medium text-ink-muted uppercase tracking-wide">
@@ -135,44 +233,25 @@ export default function VisualsPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {images.map((img) => {
-            const isExpanded = expandedId === img.id;
-            return (
-              <div
-                key={img.id}
-                className={`rounded-xl border overflow-hidden transition-all ${
-                  isExpanded
-                    ? "border-phase-tasks/40 bg-phase-tasks/5 col-span-full"
-                    : "border-edge bg-raised hover:border-phase-tasks/30 cursor-pointer"
-                }`}
-              >
-                <button
-                  onClick={() => setExpandedId(isExpanded ? null : img.id)}
-                  className="w-full text-left"
-                >
-                  <img
-                    src={`/api/visuals/image/${img.filename}`}
-                    alt={img.userPrompt}
-                    className={`w-full object-cover object-top ${isExpanded ? "max-h-[600px]" : "h-48"}`}
-                  />
-                  <div className="px-3 py-2">
-                    <p className="text-xs text-ink truncate">{img.userPrompt}</p>
-                    <p className="text-[10px] text-ink-faint font-mono mt-0.5">
-                      {new Date(img.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </button>
-                {isExpanded && (
-                  <div className="px-3 pb-3 border-t border-edge/50">
-                    <p className="text-[11px] text-ink-faint mt-2 leading-relaxed">
-                      <span className="text-ink-muted font-medium">Image prompt: </span>
-                      <span className="italic">{img.imagePrompt}</span>
-                    </p>
-                  </div>
-                )}
+          {images.map((img) => (
+            <div
+              key={img.id}
+              className="rounded-xl border border-edge bg-raised overflow-hidden hover:border-phase-tasks/30 cursor-pointer transition-all"
+              onClick={() => setLightboxImage(img)}
+            >
+              <img
+                src={`/api/visuals/image/${img.filename}`}
+                alt={img.userPrompt}
+                className="w-full h-48 object-cover object-top"
+              />
+              <div className="px-3 py-2">
+                <p className="text-xs text-ink truncate">{img.userPrompt}</p>
+                <p className="text-[10px] text-ink-faint font-mono mt-0.5">
+                  {new Date(img.createdAt).toLocaleDateString()}
+                </p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>
