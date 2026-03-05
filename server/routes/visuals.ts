@@ -74,7 +74,13 @@ async function craftImagePrompt(userPrompt: string): Promise<string> {
   }
 }
 
-async function generateImage(prompt: string): Promise<string> {
+function extFromMime(mime: string): string {
+  if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+  if (mime.includes("webp")) return "webp";
+  return "png";
+}
+
+async function generateImage(prompt: string): Promise<{ base64: string; mimeType: string }> {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_API_KEY not set in environment");
 
@@ -96,9 +102,9 @@ async function generateImage(prompt: string): Promise<string> {
   }
 
   const data = (await response.json()) as any;
-  const base64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-  if (!base64) throw new Error("No image data in Gemini response");
-  return base64;
+  const part = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+  if (!part?.data) throw new Error("No image data in Gemini response");
+  return { base64: part.data as string, mimeType: (part.mimeType as string) || "image/png" };
 }
 
 /**
@@ -109,13 +115,14 @@ export async function autoGenerateVisual(projectDir: string, uiDescription: stri
   console.log(`[AgentDash] Auto-generating visual: ${uiDescription.slice(0, 60)}...`);
 
   const imagePrompt = await craftImagePrompt(uiDescription);
-  const base64 = await generateImage(imagePrompt);
+  const result = await generateImage(imagePrompt);
 
   const id = crypto.randomUUID();
-  const filename = `${id}.png`;
+  const ext = extFromMime(result.mimeType);
+  const filename = `${id}.${ext}`;
   const visualsDir = getVisualsDir(projectDir);
   await fs.mkdir(visualsDir, { recursive: true });
-  await fs.writeFile(path.join(visualsDir, filename), Buffer.from(base64, "base64"));
+  await fs.writeFile(path.join(visualsDir, filename), Buffer.from(result.base64, "base64"));
 
   const entry: VisualEntry = {
     id,
@@ -267,13 +274,14 @@ visualsRoutes.post("/generate", async (req, res) => {
 
   try {
     const imagePrompt = await craftImagePrompt(userPrompt.trim());
-    const base64 = await generateImage(imagePrompt);
+    const result = await generateImage(imagePrompt);
 
     const id = crypto.randomUUID();
-    const filename = `${id}.png`;
+    const ext = extFromMime(result.mimeType);
+    const filename = `${id}.${ext}`;
     const visualsDir = getVisualsDir(dir);
     await fs.mkdir(visualsDir, { recursive: true });
-    await fs.writeFile(path.join(visualsDir, filename), Buffer.from(base64, "base64"));
+    await fs.writeFile(path.join(visualsDir, filename), Buffer.from(result.base64, "base64"));
 
     const entry: VisualEntry = {
       id,
@@ -312,8 +320,8 @@ visualsRoutes.get("/image/:filename", async (req, res) => {
   if (!dir) { res.status(400).json({ error: "No active project" }); return; }
 
   const { filename } = req.params;
-  // Allow only UUID-named .png files
-  if (!/^[0-9a-f-]{36}\.png$/.test(filename)) {
+  // Allow only UUID-named image files
+  if (!/^[0-9a-f-]{36}\.(png|jpg|webp)$/.test(filename)) {
     res.status(400).json({ error: "Invalid filename" });
     return;
   }
