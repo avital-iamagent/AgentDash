@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { INITIAL_STATES } from "../routes/project.js";
 
-export const LATEST_VERSION = 1;
+export const LATEST_VERSION = 2;
 
 interface Migration {
   version: number;
@@ -56,6 +56,15 @@ const MIGRATIONS: Migration[] = [
         meta.git.gitDismissed = false;
       }
 
+      return meta;
+    },
+  },
+  {
+    version: 2,
+    name: "add-memory-directory",
+    migrate: async (projectDir, meta) => {
+      const memoryDir = path.join(projectDir, ".agentdash", "memory");
+      await fs.mkdir(memoryDir, { recursive: true });
       return meta;
     },
   },

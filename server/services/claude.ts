@@ -1,6 +1,10 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
-import fs from "fs/promises";
-import path from "path";
+import {
+  shouldRegenerateSummary,
+  generatePhaseSummary,
+  buildMemoryContext,
+  findRelevantContext,
+} from "./memory.js";
 
 const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
@@ -8,34 +12,9 @@ const PHASE_SKILLS: Record<string, string> = {
   architecture: "/phase-3-architecture",
   environment: "/phase-4-environment",
   tasks: "/phase-5-tasks",
+  design: "/phase-6-design",
+  coding: "/phase-7-coding",
 };
-
-/**
- * Reads the last N conversation turns for a phase from history.json.
- * Returns a formatted string, or empty string if no history.
- */
-/**
- * Returns the last 1 full exchange (user + assistant) for a phase.
- * Enough context to avoid re-introduction without altering Claude's behavior.
- */
-async function readPhaseHistory(projectDir: string, phase: string): Promise<string> {
-  try {
-    const raw = await fs.readFile(path.join(projectDir, ".agentdash", "history.json"), "utf-8");
-    const entries: { role: string; content: string; phase: string }[] = JSON.parse(raw);
-    const phaseEntries = entries.filter((e) => e.phase === phase).slice(-4); // last 2 exchanges
-    if (phaseEntries.length === 0) return "";
-    return phaseEntries
-      .map((e) => {
-        const role = e.role === "user" ? "User" : "Assistant";
-        const limit = 10000;
-        const content = e.content.length > limit ? e.content.slice(0, limit) + "…" : e.content;
-        return `${role}: ${content}`;
-      })
-      .join("\n\n");
-  } catch {
-    return "";
-  }
-}
 
 /**
  * Streams a prompt through Claude Code with the appropriate phase skill.
@@ -60,24 +39,29 @@ export async function* sendPrompt(
   if (!skillPrefix) throw new Error(`Unknown phase: ${phase}`);
 
   // For "begin" (phase kick-off) there's no prior history to include.
-  // For all follow-up messages, prepend the recent conversation so Claude
-  // doesn't re-read state or re-introduce itself on every turn.
+  // For all follow-up messages, build memory context from summaries + raw tail + BM25 search.
   let fullPrompt: string;
   if (userPrompt.trim() === "begin") {
     fullPrompt = `${skillPrefix} begin`;
   } else {
-    const history = await readPhaseHistory(projectDir, phase);
-    if (history) {
-      fullPrompt = `${skillPrefix}
-
-## Conversation so far
-${history}
-
-## User's message
-${userPrompt}`;
-    } else {
-      fullPrompt = `${skillPrefix} ${userPrompt}`;
+    // Check if summaries need regeneration
+    if (await shouldRegenerateSummary(projectDir, phase)) {
+      await generatePhaseSummary(projectDir, phase);
     }
+
+    const memory = await buildMemoryContext(projectDir, phase);
+    const relevant = await findRelevantContext(projectDir, userPrompt);
+
+    const sections: string[] = [skillPrefix];
+    if (memory) {
+      sections.push(`## Memory\n${memory}`);
+    }
+    if (relevant) {
+      sections.push(`## Relevant past context\n${relevant}`);
+    }
+    sections.push(`## User's message\n${userPrompt}`);
+
+    fullPrompt = sections.join("\n\n");
   }
 
   const canUseTool = onPermissionRequest

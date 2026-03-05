@@ -22,3 +22,9 @@
 ## Naming
 - Phase directories: brainstorm, research, architecture, environment, tasks, design, coding
 - Artifact files: concept-brief.md, research-decisions.md, architecture-spec.md, environment-ready.md, task-breakdown.md, design-brief.md
+
+## Memory
+- Phase summaries: `.agentdash/memory/{phase}-summary.md`
+- Search index: `.agentdash/memory/search-index.json`
+- Use Grep on memory files to find past decisions or context
+- Recent entries are more reliable than old ones

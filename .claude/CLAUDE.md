@@ -4,6 +4,7 @@ This project uses AgentDash for structured development workflow.
 
 ## State Location
 All project state is in `.agentdash/`. See `meta.json` for current phase.
+Memory and conversation summaries are in `.agentdash/memory/`.
 
 ## File Conventions
 - All JSON uses camelCase keys

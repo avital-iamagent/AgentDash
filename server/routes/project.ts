@@ -266,6 +266,7 @@ projectRoutes.post("/create", async (req, res) => {
       path.join(agentdashDir, "artifacts"),
       path.join(agentdashDir, "research-notes"),
       path.join(agentdashDir, "templates"),
+      path.join(agentdashDir, "memory"),
     ];
     for (const d of dirs) {
       await fs.mkdir(d, { recursive: true });
