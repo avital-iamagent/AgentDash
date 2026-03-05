@@ -6,6 +6,14 @@ import Card from "../shared/Card";
 import PhaseEmptyState from "../shared/PhaseEmptyState";
 import type { TasksState, DesignPhaseState } from "../../types";
 
+/** Safely stringify a value that may be a string or object */
+function asText(val: unknown): string | null {
+  if (!val) return null;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return JSON.stringify(val, null, 2);
+  return String(val);
+}
+
 const STATUS_COLORS = {
   reviewed: "var(--color-phase-environment)",
   pending: "var(--color-ink-faint)",
@@ -36,7 +44,12 @@ export default function DesignBoard() {
     if (!sent) stopStreaming();
   }
 
-  const reviewedSet = new Set(design?.reviewedTasks ?? []);
+  // reviewedTasks may be strings (task IDs) or objects with taskId field (if agent deviated from schema)
+  const reviewedSet = new Set(
+    (design?.reviewedTasks ?? []).map((t: unknown) =>
+      typeof t === "string" ? t : (t as { taskId?: string })?.taskId ?? ""
+    )
+  );
 
   // Heuristic: tasks with designNotes or visualId are UI tasks;
   // also treat any task whose title/description mentions UI keywords as UI-facing
@@ -124,14 +137,14 @@ export default function DesignBoard() {
           >
             Design Direction
           </span>
-          {design.designTheme && (
-            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Theme:</span> {design.designTheme}</p>
+          {asText(design.designTheme) && (
+            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Theme:</span> {asText(design.designTheme)}</p>
           )}
-          {design.colorPalette && (
-            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Palette:</span> {design.colorPalette}</p>
+          {asText(design.colorPalette) && (
+            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Palette:</span> {asText(design.colorPalette)}</p>
           )}
-          {design.typography && (
-            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Typography:</span> {design.typography}</p>
+          {asText(design.typography) && (
+            <p className="text-xs text-ink-muted"><span className="text-ink font-medium">Typography:</span> {asText(design.typography)}</p>
           )}
         </div>
       )}
@@ -155,13 +168,13 @@ export default function DesignBoard() {
               {/* Visual thumbnail */}
               {task.visualId && (
                 <a
-                  href={`/api/visuals/image/${task.visualId}.png`}
+                  href={`/api/visuals/image/${task.visualId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block mt-2"
                 >
                   <img
-                    src={`/api/visuals/image/${task.visualId}.png`}
+                    src={`/api/visuals/image/${task.visualId}`}
                     alt="Design reference"
                     className="w-full max-w-[240px] rounded border border-edge cursor-pointer hover:opacity-80 transition-opacity"
                   />

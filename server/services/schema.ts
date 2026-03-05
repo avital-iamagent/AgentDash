@@ -179,12 +179,12 @@ export const tasksStateSchema = z.object({
 export const designPhaseStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  reviewedTasks: z.array(z.string()),
-  designTheme: z.string().nullable(),
-  colorPalette: z.string().nullable(),
-  typography: z.string().nullable(),
-  notes: z.string().nullable(),
-});
+  reviewedTasks: z.array(z.union([z.string(), z.record(z.unknown())])),
+  designTheme: z.union([z.string(), z.record(z.unknown())]).nullable(),
+  colorPalette: z.union([z.string(), z.record(z.unknown())]).nullable(),
+  typography: z.union([z.string(), z.record(z.unknown())]).nullable(),
+  notes: z.union([z.string(), z.record(z.unknown())]).nullable(),
+}).passthrough();
 
 // --- coding/state.json ---
 export const codingStateSchema = z.object({

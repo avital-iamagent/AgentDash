@@ -314,14 +314,24 @@ visualsRoutes.get("/list", async (_req, res) => {
   }
 });
 
-// GET /api/visuals/image/:filename
-visualsRoutes.get("/image/:filename", async (req, res) => {
+// GET /api/visuals/image/:idOrFilename — accepts "uuid.ext" or bare "uuid"
+visualsRoutes.get("/image/:idOrFilename", async (req, res) => {
   const dir = getActiveProjectDir();
   if (!dir) { res.status(400).json({ error: "No active project" }); return; }
 
-  const { filename } = req.params;
-  // Allow only UUID-named image files
-  if (!/^[0-9a-f-]{36}\.(png|jpg|webp)$/.test(filename)) {
+  const param = req.params.idOrFilename;
+  let filename: string;
+
+  if (/^[0-9a-f-]{36}\.(png|jpg|webp)$/.test(param)) {
+    // Full filename with extension
+    filename = param;
+  } else if (/^[0-9a-f-]{36}$/.test(param)) {
+    // Bare UUID — look up actual filename from index
+    const index = await readIndex(dir);
+    const entry = index.images.find((img) => img.id === param);
+    if (!entry) { res.status(404).json({ error: "Visual not found" }); return; }
+    filename = entry.filename;
+  } else {
     res.status(400).json({ error: "Invalid filename" });
     return;
   }
