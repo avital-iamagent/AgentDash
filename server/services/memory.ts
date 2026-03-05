@@ -88,7 +88,7 @@ export async function generatePhaseSummary(projectDir: string, phase: string): P
       prompt: `Summarize this ${phase} phase conversation. Focus on: key decisions made, open questions, important context for future work. Be concise (under 800 words). Use bullet points.\n\n${truncated}`,
       options: {
         cwd: projectDir,
-        model: "claude-haiku-4-5-20251001",
+        model: "haiku",
         systemPrompt: "You are a conversation summarizer. Extract key decisions, outcomes, and important context. Output structured markdown with sections: ## Key Decisions, ## Open Questions, ## Important Context. Be concise.",
         maxTurns: 1,
         persistSession: false,
