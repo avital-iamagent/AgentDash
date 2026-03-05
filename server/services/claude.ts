@@ -7,6 +7,7 @@ import {
   buildMemoryContext,
   findRelevantContext,
 } from "./memory.js";
+import { createAgentDashMcpServer } from "./mcp-tools.js";
 
 const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
@@ -89,6 +90,7 @@ export async function* sendPrompt(
     : undefined;
 
   try {
+    const mcpServer = createAgentDashMcpServer(projectDir);
     const stream = query({
       prompt: fullPrompt,
       options: {
@@ -97,6 +99,7 @@ export async function* sendPrompt(
         settingSources: ["project"],
         includePartialMessages: true,
         allowedTools: ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
+        mcpServers: { "agentdash-tools": mcpServer },
         ...(canUseTool && { canUseTool }),
         ...(signal && { signal }),
       },

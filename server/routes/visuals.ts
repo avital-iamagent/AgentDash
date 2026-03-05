@@ -26,7 +26,7 @@ function getIndexPath(projectDir: string): string {
   return path.join(getVisualsDir(projectDir), "index.json");
 }
 
-async function readIndex(projectDir: string): Promise<VisualsIndex> {
+export async function readIndex(projectDir: string): Promise<VisualsIndex> {
   try {
     const raw = await fs.readFile(getIndexPath(projectDir), "utf-8");
     return JSON.parse(raw);
