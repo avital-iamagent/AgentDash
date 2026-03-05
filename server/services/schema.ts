@@ -14,6 +14,7 @@ const phaseMetaSchema = z.object({
 
 // --- meta.json ---
 export const metaSchema = z.object({
+  schemaVersion: z.number().optional().default(0),
   projectName: z.string(),
   createdAt: z.string(),
   activePhase: z.enum(["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"]),

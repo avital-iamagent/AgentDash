@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { fileURLToPath } from "url";
 import type { RecentProject, RecentProjectsFile } from "../types/index.js";
 import { detectGitStatus } from "./git.js";
+import { runMigrations, LATEST_VERSION } from "../services/migrate.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -81,6 +82,26 @@ async function scaffoldClaudeDir(projectDir: string): Promise<void> {
   }
 }
 
+/**
+ * Sync template files from AgentDash install into the project's .agentdash/templates/.
+ */
+async function syncTemplates(projectDir: string): Promise<void> {
+  const ownTemplatesDir = path.join(AGENTDASH_ROOT, ".agentdash", "templates");
+  const targetTemplatesDir = path.join(projectDir, ".agentdash", "templates");
+  await fs.mkdir(targetTemplatesDir, { recursive: true });
+  try {
+    const templateFiles = await fs.readdir(ownTemplatesDir);
+    for (const f of templateFiles) {
+      if (f.endsWith(".template.md")) {
+        const content = await fs.readFile(path.join(ownTemplatesDir, f), "utf-8");
+        await fs.writeFile(path.join(targetTemplatesDir, f), content);
+      }
+    }
+  } catch {
+    // Templates dir might not exist in dev
+  }
+}
+
 /** Expand ~ to home directory and resolve to absolute path */
 function resolvePath(input: string): string {
   let resolved = input.trim();
@@ -117,6 +138,7 @@ async function addToRecent(dir: string, name: string): Promise<void> {
 // Initial state files for a new project
 function initialMeta(projectName: string): object {
   return {
+    schemaVersion: LATEST_VERSION,
     projectName,
     createdAt: new Date().toISOString(),
     activePhase: "brainstorm",
@@ -133,7 +155,7 @@ function initialMeta(projectName: string): object {
   };
 }
 
-const INITIAL_STATES: Record<string, object> = {
+export const INITIAL_STATES: Record<string, object> = {
   brainstorm: { updatedAt: null, updatedBy: "claude-code", cards: [], groups: [], tags: [] },
   research: { updatedAt: null, updatedBy: "claude-code", items: [], categories: ["competitor", "tech-stack", "pattern", "risk"], verdicts: ["adopt", "learn-from", "avoid", "needs-more-research"] },
   architecture: { updatedAt: null, updatedBy: "claude-code", components: [], decisions: [], diagrams: [], risks: [] },
@@ -189,8 +211,8 @@ projectRoutes.post("/open", async (req, res) => {
   const metaPath = path.join(agentdashDir, "meta.json");
 
   try {
-    const metaRaw = await fs.readFile(metaPath, "utf-8");
-    const meta = JSON.parse(metaRaw);
+    // Run migrations first (upgrades schema, adds missing phases/dirs)
+    const meta = await runMigrations(resolvedDir);
 
     // Auto-detect git: if directory is a git repo but meta says disabled, populate git fields
     if (!meta.git?.enabled) {
@@ -208,15 +230,8 @@ projectRoutes.post("/open", async (req, res) => {
       }
     }
 
-    // Ensure gitDismissed field exists (backfill for older projects)
-    if (meta.git && meta.git.gitDismissed === undefined) {
-      meta.git.gitDismissed = false;
-      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
-    }
-
-
-
     await scaffoldClaudeDir(resolvedDir);
+    await syncTemplates(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, meta.projectName || path.basename(resolvedDir));
     res.json({ ok: true, meta });
@@ -269,20 +284,7 @@ projectRoutes.post("/create", async (req, res) => {
     await fs.writeFile(path.join(agentdashDir, "artifacts", ".gitkeep"), "");
     await fs.writeFile(path.join(agentdashDir, "research-notes", ".gitkeep"), "");
 
-    // Copy templates from the AgentDash install
-    const ownTemplatesDir = path.join(AGENTDASH_ROOT, ".agentdash", "templates");
-    try {
-      const templateFiles = await fs.readdir(ownTemplatesDir);
-      for (const f of templateFiles) {
-        if (f.endsWith(".template.md")) {
-          const content = await fs.readFile(path.join(ownTemplatesDir, f), "utf-8");
-          await fs.writeFile(path.join(agentdashDir, "templates", f), content);
-        }
-      }
-    } catch {
-      // Templates dir might not exist if creating in the same dir
-    }
-
+    await syncTemplates(resolvedDir);
     await scaffoldClaudeDir(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, projectName);
