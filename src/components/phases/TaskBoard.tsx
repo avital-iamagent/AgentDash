@@ -1,6 +1,4 @@
 import { usePhaseState } from "../../hooks/usePhaseState";
-import { useAppStore } from "../../stores/appStore";
-import { sendWsMessage } from "../../hooks/useWebSocket";
 import Card from "../shared/Card";
 import PhaseEmptyState from "../shared/PhaseEmptyState";
 import type { TasksState } from "../../types";
@@ -21,24 +19,9 @@ const STATUS_COLORS: Record<string, string> = {
 export default function TaskBoard() {
   const { data, loading, error } = usePhaseState("tasks");
   const state = data as TasksState | null;
-  const isStreaming = useAppStore((s) => s.isStreaming);
-  const startStreaming = useAppStore((s) => s.startStreaming);
-  const stopStreaming = useAppStore((s) => s.stopStreaming);
-
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorState message={error} />;
   if (!state || state.tasks.length === 0) return <PhaseEmptyState phase="tasks" />;
-
-  const hasStartedCoding = state.tasks.some(
-    (t) => t.status === "in-progress" || t.status === "done"
-  );
-
-  function handleStartCoding() {
-    if (isStreaming) return;
-    startStreaming("start coding");
-    const sent = sendWsMessage({ type: "prompt", phase: "tasks", text: "start coding" });
-    if (!sent) stopStreaming();
-  }
 
   // Build milestone lookup
   const milestoneMap = new Map(state.milestones.map((m) => [m.id, m]));
@@ -68,44 +51,6 @@ export default function TaskBoard() {
 
   return (
     <div className="stagger space-y-6">
-      {!hasStartedCoding && (
-        <div
-          className="rounded-xl border p-4 flex items-center justify-between gap-4 animate-fade-up"
-          style={{
-            borderColor: "color-mix(in srgb, var(--color-phase-environment) 30%, transparent)",
-            backgroundColor: "color-mix(in srgb, var(--color-phase-environment) 6%, transparent)",
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm"
-              style={{
-                color: "var(--color-phase-environment)",
-                backgroundColor: "color-mix(in srgb, var(--color-phase-environment) 15%, transparent)",
-              }}
-            >
-              ▶
-            </div>
-            <div>
-              <p className="text-sm font-medium text-ink">Ready for implementation</p>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Want me to start coding through these tasks?
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleStartCoding}
-            disabled={isStreaming}
-            className="shrink-0 px-4 py-1.5 rounded-lg text-sm font-medium transition-opacity disabled:opacity-40"
-            style={{
-              color: "var(--color-canvas)",
-              backgroundColor: "var(--color-phase-environment)",
-            }}
-          >
-            Start Coding
-          </button>
-        </div>
-      )}
       {Array.from(grouped.entries()).map(([msId, group]) => (
         <div key={msId}>
           {/* Milestone header */}

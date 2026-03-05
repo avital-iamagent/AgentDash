@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { usePhaseState } from "../../hooks/usePhaseState";
+import { useAppStore } from "../../stores/appStore";
+import { sendWsMessage } from "../../hooks/useWebSocket";
 import Card from "../shared/Card";
 import PhaseEmptyState from "../shared/PhaseEmptyState";
 import type { TasksState, DesignPhaseState } from "../../types";
@@ -13,12 +15,26 @@ export default function DesignBoard() {
   const { data: tasksData, loading: tasksLoading } = usePhaseState("tasks");
   const { data: designData, loading: designLoading } = usePhaseState("design");
   const [showNonUi, setShowNonUi] = useState(false);
+  const isStreaming = useAppStore((s) => s.isStreaming);
+  const startStreaming = useAppStore((s) => s.startStreaming);
+  const stopStreaming = useAppStore((s) => s.stopStreaming);
 
   const tasks = tasksData as TasksState | null;
   const design = designData as DesignPhaseState | null;
 
   if (tasksLoading || designLoading) return <LoadingSkeleton />;
   if (!tasks || tasks.tasks.length === 0) return <PhaseEmptyState phase="design" />;
+
+  function handleSkipDesign() {
+    if (isStreaming) return;
+    startStreaming("skip design");
+    const sent = sendWsMessage({
+      type: "prompt",
+      phase: "design",
+      text: "Skip the design phase — no design decisions are needed for this project. Mark the design phase as completed and transition to the coding phase.",
+    });
+    if (!sent) stopStreaming();
+  }
 
   const reviewedSet = new Set(design?.reviewedTasks ?? []);
 
@@ -37,6 +53,44 @@ export default function DesignBoard() {
 
   return (
     <div className="stagger space-y-6">
+      {/* Skip design banner */}
+      <div
+        className="rounded-xl border p-4 flex items-center justify-between gap-4 animate-fade-up"
+        style={{
+          borderColor: "color-mix(in srgb, var(--color-phase-design) 30%, transparent)",
+          backgroundColor: "color-mix(in srgb, var(--color-phase-design) 6%, transparent)",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm"
+            style={{
+              color: "var(--color-phase-design)",
+              backgroundColor: "color-mix(in srgb, var(--color-phase-design) 15%, transparent)",
+            }}
+          >
+            D
+          </div>
+          <div>
+            <p className="text-sm font-medium text-ink">No UI design needed?</p>
+            <p className="text-xs text-ink-muted mt-0.5">
+              Skip this phase and go straight to coding
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleSkipDesign}
+          disabled={isStreaming}
+          className="shrink-0 px-4 py-1.5 rounded-lg text-sm font-medium transition-opacity disabled:opacity-40"
+          style={{
+            color: "var(--color-canvas)",
+            backgroundColor: "var(--color-phase-design)",
+          }}
+        >
+          Skip Design
+        </button>
+      </div>
+
       {/* Progress header */}
       <div className="flex items-center gap-3">
         <h3 className="text-sm font-medium text-ink">Design Review</h3>
