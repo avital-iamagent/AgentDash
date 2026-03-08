@@ -6,6 +6,7 @@ export interface AgentDashConfig {
   port?: number;
   installPath?: string;
   googleApiKey?: string;
+  chromeExtension?: boolean;
 }
 
 const configPath = process.env.AGENTDASH_CONFIG || path.join(
