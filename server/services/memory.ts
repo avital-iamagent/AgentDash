@@ -46,9 +46,25 @@ export function phaseDistance(a: string, b: string): number {
 
 // ─── Feature 1: AI Summarization ─────────────────────────
 
+const MIN_SUMMARY_LENGTH = 200;
+const STUB_PATTERNS = [
+  /^let me (check|read|look|review|examine|verify|search|find|inspect)/i,
+  /^i('ll| will| need to| should) (check|read|look|review|examine|verify|search|find|inspect)/i,
+];
+
+function isStubResponse(text: string): boolean {
+  const trimmed = text.replace(/^#.*\n*/gm, "").trim();
+  return STUB_PATTERNS.some((p) => p.test(trimmed));
+}
+
 function parseEntryCount(summary: string): number {
   const match = summary.match(/<!-- entryCount: (\d+) -->/);
   return match ? parseInt(match[1], 10) : 0;
+}
+
+function isSummaryValid(content: string): boolean {
+  const body = content.replace(/^<!-- entryCount: \d+ -->\n/, "");
+  return body.length >= MIN_SUMMARY_LENGTH && !isStubResponse(body);
 }
 
 export async function shouldRegenerateSummary(projectDir: string, phase: string): Promise<boolean> {
@@ -58,6 +74,8 @@ export async function shouldRegenerateSummary(projectDir: string, phase: string)
 
   try {
     const existing = await fs.readFile(summaryPath(projectDir, phase), "utf-8");
+    // Always regenerate if the existing summary is invalid (stub/too short)
+    if (!isSummaryValid(existing)) return true;
     const lastCount = parseEntryCount(existing);
     return phaseEntries.length - lastCount >= SUMMARY_THRESHOLD;
   } catch {
@@ -82,45 +100,61 @@ export async function generatePhaseSummary(projectDir: string, phase: string): P
   // Truncate to fit Haiku context reasonably
   const truncated = conversationText.slice(0, 30_000);
 
+  const MAX_ATTEMPTS = 2;
+
   try {
     let summaryText = "";
-    const stream = query({
-      prompt: `Summarize this ${phase} phase conversation. Focus on: key decisions made, open questions, important context for future work. Be concise (under 800 words). Use bullet points.\n\n${truncated}`,
-      options: {
-        cwd: projectDir,
-        model: "haiku",
-        systemPrompt: "You are a conversation summarizer. Extract key decisions, outcomes, and important context. Output structured markdown with sections: ## Key Decisions, ## Open Questions, ## Important Context. Be concise.",
-        maxTurns: 1,
-        persistSession: false,
-        allowedTools: [],
-      },
-    });
 
-    for await (const msg of stream) {
-      if (msg.type === "result") {
-        const result = msg as any;
-        if (typeof result.result === "string") {
-          summaryText = result.result;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      summaryText = "";
+      const stream = query({
+        prompt: `Below is the full conversation from the "${phase}" phase. Summarize it directly based on what you read below. Do NOT attempt to read files, check state, or take any actions — just summarize the conversation text provided.\n\nFocus on: key decisions made, open questions, important context for future work. Be concise (under 800 words). Use bullet points.\n\n---\n\n${truncated}`,
+        options: {
+          cwd: projectDir,
+          model: "haiku",
+          systemPrompt: "You are a conversation summarizer. You will be given a conversation transcript. Summarize it directly — do NOT say 'let me check' or 'let me read', do NOT attempt any actions. Output structured markdown with sections: ## Key Decisions, ## Open Questions, ## Important Context. Be concise.",
+          maxTurns: 1,
+          persistSession: false,
+          allowedTools: [],
+        },
+      });
+
+      for await (const msg of stream) {
+        if (msg.type === "result") {
+          const result = msg as any;
+          if (typeof result.result === "string") {
+            summaryText = result.result;
+          }
+        } else if (msg.type === "assistant") {
+          const assistantMsg = msg as any;
+          const text = assistantMsg.message?.content
+            ?.filter((b: any) => b.type === "text")
+            .map((b: any) => b.text)
+            .join("");
+          if (text) summaryText = text;
         }
-      } else if (msg.type === "assistant") {
-        const assistantMsg = msg as any;
-        const text = assistantMsg.message?.content
-          ?.filter((b: any) => b.type === "text")
-          .map((b: any) => b.text)
-          .join("");
-        if (text) summaryText = text;
       }
+
+      // Validate: must be non-empty, at least 200 chars, and not a "thinking aloud" stub
+      if (summaryText && summaryText.length >= 200 && !isStubResponse(summaryText)) {
+        break;
+      }
+
+      console.warn(
+        `[AgentDash] Summary attempt ${attempt}/${MAX_ATTEMPTS} for ${phase} produced invalid output (${summaryText.length} chars), ${attempt < MAX_ATTEMPTS ? "retrying" : "giving up"}`
+      );
+      summaryText = "";
     }
 
     if (!summaryText) {
-      console.warn(`[AgentDash] Haiku returned empty summary for ${phase}, skipping`);
+      console.warn(`[AgentDash] Failed to generate valid summary for ${phase} after ${MAX_ATTEMPTS} attempts, skipping`);
       return;
     }
 
     await fs.mkdir(memoryDir(projectDir), { recursive: true });
     const header = `<!-- entryCount: ${phaseEntries.length} -->\n`;
     await fs.writeFile(summaryPath(projectDir, phase), header + summaryText);
-    console.log(`[AgentDash] Generated summary for ${phase} (${phaseEntries.length} entries)`);
+    console.log(`[AgentDash] Generated summary for ${phase} (${phaseEntries.length} entries, ${summaryText.length} chars)`);
 
     await rebuildSearchIndex(projectDir);
   } catch (err) {
