@@ -196,49 +196,6 @@ If they say **yes**:
 If they say **no**:
 - Print: `  ☐  Nano Banana skipped — you can set it up later by adding GOOGLE_API_KEY to your environment`
 
-Then ask about UI testing with Chrome:
-
-> 🌐 **Browser testing** — Let the coding agent visually verify UI it builds.
->
-> AgentDash includes **Playwright CLI** for automated browser testing (already installed).
->
-> You can also enable **Claude in Chrome** — a Chrome extension that lets the agent see and interact with your actual browser. This is useful for visual spot-checks ("does this page actually look right?").
->
-> Want to enable Claude in Chrome?
->
-> _(yes / no)_
-
-If they say **yes**, walk them through the setup:
-
-1. Print the installation steps:
-   > 📋 **Setup instructions:**
-   >
-   > 1. Open Chrome and go to the [Claude extension page](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn)
-   > 2. Click **"Add to Chrome"** and confirm
-   > 3. Click the puzzle piece icon 🧩 in Chrome's toolbar and **pin** the Claude extension
-   > 4. Sign in with your Claude account when prompted
-   >
-   > ⏳ I'll wait — tell me when you're done.
-
-2. After the user confirms, **verify the installation**:
-   - Check that the native messaging host config exists:
-     `ls ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
-   - If the file exists: `  ✅  Chrome extension detected`
-   - If not found:
-     > ❌ Chrome extension not detected. Try these steps:
-     > 1. Make sure Chrome is running
-     > 2. Click the Claude extension icon in Chrome to activate it
-     > 3. Fully quit Chrome (⌘Q) and reopen it
-     > 4. Tell me when you've done that and I'll check again.
-   - Retry the check after the user confirms. If it still fails after 2 attempts:
-     > ⚠️  Couldn't verify the extension. You can set it up later — the agent will use Playwright CLI for testing in the meantime.
-
-3. Store the preference in `~/.agentdash/config.json` as `"chromeExtension": true` (or `false` if skipped/failed).
-
-If they say **no**:
-- Print: `  ☐  Chrome extension skipped — the agent will use Playwright CLI for browser testing`
-- Store `"chromeExtension": false` in config.
-
 Then ask about port:
 
 > 🌐 **Port** — AgentDash runs on port `3141` by default.
@@ -311,7 +268,6 @@ Print this final summary:
 ║   📂  App:     <path>                    ║
 ║   🔊  TTS:     <enabled/disabled>        ║
 ║   🍌  Visuals: <enabled/disabled>        ║
-║   🌐  Chrome:  <enabled/disabled>        ║
 ║   🌐  Port:    <port>                    ║
 ║   🔧  CLI:     ~/.agentdash/bin/agentdash║
 ║                                          ║

@@ -87,18 +87,27 @@ Write tests for tasks that involve data logic, API endpoints, or business rules.
 
 ## Browser Testing
 
-Two tools are available for testing UI in a real browser:
+A **Playwright MCP server** is available for testing UI in a real browser. It opens a visible browser window you can watch.
 
-### Playwright CLI (always available)
-Use `npx @playwright/cli` for automated, repeatable browser tests — navigating pages, clicking elements, filling forms, asserting content. This is token-efficient and best for E2E test flows.
-- Use for: functional UI tests, form submissions, navigation flows, regression tests
-- Run via Bash: `npx @playwright/cli test <url> --action "click the login button"`
+### Available tools (via MCP)
+The Playwright MCP server provides tools prefixed with `mcp__playwright__`. Use these to:
+- **Navigate** to URLs (including localhost dev servers)
+- **Click** elements, **fill** forms, **select** options
+- **Take screenshots** and inspect the page visually
+- **Read console logs** for errors
+- **Assert** page content and element state
 
-### Claude in Chrome (if enabled)
-If the user has the Claude in Chrome extension installed, you can visually inspect pages in the user's actual browser. Use the `/chrome` command or `--chrome` flag.
-- Use for: visual spot-checks after completing UI tasks ("does this look right?"), checking responsive layout, verifying styling
-- Do NOT use for: automated test suites or repeatable tests (use Playwright CLI instead)
-- Only use this at milestone boundaries or when the user asks — do not open Chrome for every task.
+### When to use browser testing
+- After completing UI tasks — verify the page renders correctly
+- At milestone boundaries — run through key user flows
+- When debugging visual or interaction bugs
+- When the user asks you to check something in the browser
+
+### Guidelines
+- Start the project's dev server first (via Bash), then navigate to it
+- Remember the dev server port must NOT be 3001 or 3141 (those are AgentDash)
+- Take a screenshot after navigation to verify what you see
+- Close browser tabs when done to avoid resource leaks
 
 ## Commits: Separate Code from Metadata
 

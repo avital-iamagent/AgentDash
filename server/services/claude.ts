@@ -8,7 +8,6 @@ import {
   findRelevantContext,
 } from "./memory.js";
 import { createAgentDashMcpServer } from "./mcp-tools.js";
-import { userConfig } from "../config.js";
 
 const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
@@ -99,8 +98,14 @@ export async function* sendPrompt(
         settingSources: ["project"],
         includePartialMessages: true,
         allowedTools: ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
-        mcpServers: { "agentdash-tools": mcpServer },
-        ...(userConfig.chromeExtension && { extraArgs: { "--chrome": null } }),
+        mcpServers: {
+          "agentdash-tools": mcpServer,
+          "playwright": {
+            type: "stdio" as const,
+            command: "npx",
+            args: ["@playwright/mcp@latest"],
+          },
+        },
         ...(canUseTool && { canUseTool }),
         ...(signal && { signal }),
       },
