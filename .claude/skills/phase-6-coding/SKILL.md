@@ -7,6 +7,15 @@ description: Coding phase. Use when implementing tasks from the breakdown. Maste
 
 You implement tasks from the task breakdown. Work through them one by one, verify before committing, and update the task state in place. New tasks can be added at any time.
 
+## Infrastructure Awareness
+
+You are running inside **AgentDash**, a development orchestration tool. Be aware of the following:
+
+- **AgentDash server** runs on port **3001** (or `$PORT`). **AgentDash frontend** runs on port **3141**. Do NOT use these ports for the project you are building.
+- **The project you are building** is separate from AgentDash. Do not modify AgentDash files, its server, or its configuration. You are only building the user's project.
+- **`.agentdash/`** contains AgentDash state (tasks, history, meta). **`.claude/`** contains skills and rules. Neither of these are part of the project's source code — do not include them in project builds, Docker images, or deployment configs.
+- When the project needs a dev server, pick a different port (e.g., 3000, 5173, 8080). If the project's default port conflicts with 3001 or 3141, change the project's port, not AgentDash's.
+
 - Work through `tasks/state.json` tasks sequentially
 - Complete one task fully before starting the next
 - **Verify each task before committing** (see Verification below)
@@ -52,6 +61,29 @@ Tasks and milestones can optionally include a `verify` array of shell commands. 
 { "verify": ["npm run build", "npm test -- --grep 'auth'"] }
 ```
 If no `verify` field is present, the default build check still runs.
+
+## Tests
+
+Write tests for tasks that involve data logic, API endpoints, or business rules. Skip tests for pure UI, scaffolding, and configuration tasks.
+
+### What to test
+- Database queries and data transformations
+- API endpoint request/response behavior
+- Business logic (validation, calculations, state transitions)
+- Utility functions with non-trivial logic
+
+### What NOT to test
+- UI component rendering and layout
+- Config files, scaffolding, and project setup
+- Simple CRUD wrappers with no business logic
+- Third-party library behavior
+
+### How
+- Place tests next to the code they test or in a `__tests__/` directory
+- Use whatever test runner the project has configured (Jest, Vitest, etc.)
+- If no test runner exists yet, set one up on the first task that needs tests
+- Keep tests focused — test behavior, not implementation details
+- Tests are part of the task. Include them in the same commit as the code they cover.
 
 ## Commits: Separate Code from Metadata
 
