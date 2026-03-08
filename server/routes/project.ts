@@ -235,13 +235,8 @@ projectRoutes.post("/open", async (req, res) => {
     res.json({ ok: true, meta });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // Distinguish "directory doesn't exist" from other errors
-    if (message.includes("ENOENT")) {
-      res.status(404).json({ error: "No .agentdash/ found in this directory. Use /api/project/create first." });
-    } else {
-      console.error("[AgentDash] Error opening project:", message);
-      res.status(500).json({ error: `Failed to open project: ${message}` });
-    }
+    console.error("[AgentDash] Error opening project:", err);
+    res.status(500).json({ error: `Failed to open project: ${message}` });
   }
 });
 
