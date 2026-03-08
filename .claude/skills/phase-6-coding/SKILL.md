@@ -85,6 +85,21 @@ Write tests for tasks that involve data logic, API endpoints, or business rules.
 - Keep tests focused — test behavior, not implementation details
 - Tests are part of the task. Include them in the same commit as the code they cover.
 
+## Browser Testing
+
+Two tools are available for testing UI in a real browser:
+
+### Playwright CLI (always available)
+Use `npx @playwright/cli` for automated, repeatable browser tests — navigating pages, clicking elements, filling forms, asserting content. This is token-efficient and best for E2E test flows.
+- Use for: functional UI tests, form submissions, navigation flows, regression tests
+- Run via Bash: `npx @playwright/cli test <url> --action "click the login button"`
+
+### Claude in Chrome (if enabled)
+If the user has the Claude in Chrome extension installed, you can visually inspect pages in the user's actual browser. Use the `/chrome` command or `--chrome` flag.
+- Use for: visual spot-checks after completing UI tasks ("does this look right?"), checking responsive layout, verifying styling
+- Do NOT use for: automated test suites or repeatable tests (use Playwright CLI instead)
+- Only use this at milestone boundaries or when the user asks — do not open Chrome for every task.
+
 ## Commits: Separate Code from Metadata
 
 You are building a **project** (the actual codebase — `src/`, `server/`, config files, etc.). You are also updating `.agentdash/` state files to track your progress. These are two different things. Do not confuse them.
