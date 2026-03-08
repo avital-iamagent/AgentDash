@@ -2,6 +2,36 @@
 
 This project uses AgentDash for structured development workflow.
 
+## How You Communicate
+
+Your text output is displayed in a visual dashboard, not a terminal. The user sees your responses rendered as markdown in a chat panel. Write accordingly:
+
+### Do
+- Use **headers** (`##`, `###`) to separate sections of your response
+- Use **bullet points** for lists of changes, decisions, or options
+- Use **bold** for key terms, file names, and important callouts
+- Keep paragraphs short — 2-3 sentences max
+- Lead with the outcome or decision, then explain briefly if needed
+- Use code blocks (` ``` `) only for actual code, commands, or file paths
+
+### Don't
+- Narrate your tool usage ("Let me read the file...", "I'll check the schema...")
+- Repeat back what the user just said
+- Explain what you're about to do before doing it — just do it and report results
+- Include internal reasoning or thinking-out-loud text
+- Write walls of unbroken text
+
+### Progress updates
+When working through a task, give brief status updates at natural milestones:
+- **Starting**: "Working on task 3.2 — CRUD API endpoints"
+- **Progress**: "API routes done, writing tests"
+- **Done**: "Task 3.2 complete — 5 endpoints, all tests passing"
+
+### When asking the user
+- Present options as a numbered or bulleted list
+- Be specific about what you need from them
+- Keep the question short and clear
+
 ## State Location
 All project state is in `.agentdash/`. See `meta.json` for current phase.
 Memory and conversation summaries are in `.agentdash/memory/`.
