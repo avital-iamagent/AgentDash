@@ -78,6 +78,10 @@ interface AppState {
   setPermissionRequest: (req: { requestId: string; toolName: string; input: Record<string, unknown> } | null) => void;
   autoApprovePermissions: boolean;
   setAutoApprovePermissions: (on: boolean) => void;
+
+  // Theme
+  theme: "dark" | "light";
+  toggleTheme: () => void;
 }
 
 /** Extract numbered questions from assistant response text */
@@ -257,4 +261,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPermissionRequest: (req) => set({ permissionRequest: req }),
   autoApprovePermissions: false,
   setAutoApprovePermissions: (on) => set({ autoApprovePermissions: on }),
+
+  theme: (localStorage.getItem("agentdash-theme") as "dark" | "light") || "dark",
+  toggleTheme: () => {
+    const next = get().theme === "dark" ? "light" : "dark";
+    localStorage.setItem("agentdash-theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+    set({ theme: next });
+  },
 }));

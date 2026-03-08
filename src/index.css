@@ -26,6 +26,35 @@
   --color-success: #10B981;
 }
 
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-canvas: #f5f6f8;
+  --color-panel: #ffffff;
+  --color-raised: #ecedf1;
+  --color-overlay: #e2e3ea;
+  --color-edge: #d0d2db;
+  --color-edge-bright: #b4b7c5;
+  --color-ink: #1a1b2e;
+  --color-ink-muted: #5c5d78;
+  --color-ink-faint: #9496ad;
+
+  --color-phase-brainstorm: #d97706;
+  --color-phase-research: #2563eb;
+  --color-phase-architecture: #7c3aed;
+  --color-phase-tasks: #dc2626;
+  --color-phase-design: #db2777;
+  --color-phase-coding: #0891b2;
+
+  --color-success: #059669;
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--color-edge-bright); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-faint); }
+
 html, body { background: var(--color-canvas); }
 
 /* Scrollbar */
