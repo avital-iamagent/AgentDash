@@ -44,6 +44,24 @@ function setActiveProject(dir: string) {
 const AGENTDASH_CLAUDE_DIR = path.join(AGENTDASH_ROOT, ".claude");
 
 /**
+ * Ensure .agentdash/ is listed in the project's .gitignore.
+ * Prevents accidental commits that could lead to data loss on revert.
+ */
+async function ensureGitignore(projectDir: string): Promise<void> {
+  const gitignorePath = path.join(projectDir, ".gitignore");
+  let content = "";
+  try {
+    content = await fs.readFile(gitignorePath, "utf-8");
+  } catch {
+    // No .gitignore yet
+  }
+  if (!content.split("\n").some((line) => line.trim() === ".agentdash/" || line.trim() === ".agentdash")) {
+    const newline = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
+    await fs.writeFile(gitignorePath, content + newline + ".agentdash/\n");
+  }
+}
+
+/**
  * Scaffold .claude/ directory into a user project so the SDK can find
  * skills, CLAUDE.md, and rules when running with cwd = projectDir.
  * Overwrites existing files to keep them in sync with the AgentDash install.
@@ -209,6 +227,39 @@ projectRoutes.post("/open", async (req, res) => {
   const metaPath = path.join(agentdashDir, "meta.json");
 
   try {
+    // Check if .agentdash/ exists
+    try {
+      await fs.access(agentdashDir);
+    } catch {
+      res.status(404).json({ error: "No .agentdash/ found in this directory. Use /api/project/create first." });
+      return;
+    }
+
+    // If meta.json is missing but .agentdash/ exists, regenerate it
+    try {
+      await fs.access(metaPath);
+    } catch {
+      console.log("[AgentDash] meta.json missing, regenerating from existing project state...");
+      const projectName = path.basename(resolvedDir);
+      const meta = initialMeta(projectName);
+      // Try to detect which phases have state files and mark them accordingly
+      for (const phase of ["brainstorm", "research", "architecture", "tasks", "design", "coding"] as const) {
+        const statePath = path.join(agentdashDir, phase, "state.json");
+        try {
+          await fs.access(statePath);
+          // State file exists — ensure the directory is there
+        } catch {
+          // Create missing phase dir and state file
+          await fs.mkdir(path.join(agentdashDir, phase), { recursive: true });
+          const initial = INITIAL_STATES[phase];
+          if (initial) {
+            await fs.writeFile(statePath, JSON.stringify(initial, null, 2));
+          }
+        }
+      }
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
+    }
+
     // Run migrations first (upgrades schema, adds missing phases/dirs)
     const meta = await runMigrations(resolvedDir);
 
@@ -230,6 +281,7 @@ projectRoutes.post("/open", async (req, res) => {
 
     await scaffoldClaudeDir(resolvedDir);
     await syncTemplates(resolvedDir);
+    await ensureGitignore(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, meta.projectName || path.basename(resolvedDir));
     res.json({ ok: true, meta });
@@ -286,6 +338,7 @@ projectRoutes.post("/create", async (req, res) => {
 
     await syncTemplates(resolvedDir);
     await scaffoldClaudeDir(resolvedDir);
+    await ensureGitignore(resolvedDir);
     setActiveProject(resolvedDir);
     await addToRecent(resolvedDir, projectName);
     res.json({ ok: true, meta });
