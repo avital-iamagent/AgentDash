@@ -19,10 +19,11 @@
   --color-phase-brainstorm: #F59E0B;
   --color-phase-research: #3B82F6;
   --color-phase-architecture: #8B5CF6;
-  --color-phase-environment: #10B981;
   --color-phase-tasks: #EF4444;
   --color-phase-design: #EC4899;
   --color-phase-coding: #06B6D4;
+
+  --color-success: #10B981;
 }
 
 html, body { background: var(--color-canvas); }

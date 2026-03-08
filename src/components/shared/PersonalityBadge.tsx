@@ -4,7 +4,6 @@ const PERSONALITIES: Record<PhaseName, string> = {
   brainstorm: "Devil's Advocate",
   research: "Skeptical Analyst",
   architecture: "Pragmatic Engineer",
-  environment: "Meticulous Ops",
   tasks: "Clear-Headed PM",
   design: "Creative Director",
   coding: "Master Engineer",

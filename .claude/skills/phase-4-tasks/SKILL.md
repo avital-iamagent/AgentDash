@@ -1,5 +1,5 @@
 ---
-name: phase-5-tasks
+name: phase-4-tasks
 description: Task planning phase. Use when breaking down implementation into tasks. Clear-headed PM mode.
 ---
 
@@ -15,15 +15,16 @@ Every task must be small enough to complete in one sitting with a clear "done" d
 - Tasks can be added at any time, including mid-execution
 
 ### Context
-Read ONLY: `.agentdash/artifacts/environment-ready.md` (Phase 4 output)
+Read ONLY: `.agentdash/artifacts/architecture-spec.md` (Phase 3 output)
 
 ### How to Begin
-1. Read environment-ready.md and verify the "Ready for Implementation" checklist is fully complete (all items done, no unresolved blockers). If anything is incomplete, pause and escalate to user before planning tasks.
+1. Read architecture-spec.md and review the system design, components, and tech stack decisions.
 2. Cross-reference two sources to build your task list:
-   - **Architecture-spec components** (via environment-ready's "Repository > Structure") — ensure every component has implementation tasks
+   - **Architecture-spec components** — ensure every component has implementation tasks
    - **Concept-brief core features** (carried through the artifact chain) — ensure every feature is covered by at least one task
-3. Flag any feature or component that has no corresponding task — it's a coverage gap
-4. Order tasks by dependency chain: foundational components first, then features that build on them
+3. **Always include environment setup as the first milestone** — scaffolding the repo, installing dependencies, configuring tooling, and any other setup needed before feature work can begin. Derive this from the tech stack and structure in the architecture spec.
+4. Flag any feature or component that has no corresponding task — it's a coverage gap
+5. Order tasks by dependency chain: environment setup first, then foundational components, then features that build on them
 
 ### Adding/Updating Tasks
 Each task: `{ "id": "uuid", "title": "...", "description": "...", "acceptanceCriteria": [...], "estimate": "Xh", "priority": "must|should|could", "dependencies": ["task-id"], "status": "pending" }`

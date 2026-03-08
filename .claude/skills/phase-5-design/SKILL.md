@@ -1,5 +1,5 @@
 ---
-name: phase-6-design
+name: phase-5-design
 description: Design phase. Use when reviewing UI tasks, discussing visual design, generating reference mockups. Creative Director mode.
 ---
 

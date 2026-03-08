@@ -5,7 +5,6 @@ const PHASE_CONFIG: Record<PhaseName, { letter: string; noun: string; action: st
   brainstorm:   { letter: "B", noun: "ideas",           action: "start brainstorming" },
   research:     { letter: "R", noun: "research items",  action: "start research" },
   architecture: { letter: "A", noun: "architecture",    action: "start designing" },
-  environment:  { letter: "E", noun: "checklist items", action: "start environment setup" },
   tasks:        { letter: "T", noun: "tasks",           action: "break down tasks" },
   design:       { letter: "D", noun: "design reviews",  action: "start design review" },
   coding:       { letter: "C", noun: "code changes",    action: "start coding" },

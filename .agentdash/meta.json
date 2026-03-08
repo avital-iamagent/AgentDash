@@ -24,13 +24,6 @@
       "artifactApproved": false,
       "reviewReport": null
     },
-    "environment": {
-      "status": "locked",
-      "startedAt": null,
-      "completedAt": null,
-      "artifactApproved": false,
-      "reviewReport": null
-    },
     "tasks": {
       "status": "locked",
       "startedAt": null,

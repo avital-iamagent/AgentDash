@@ -2,7 +2,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import fs from "fs/promises";
 import path from "path";
 
-const PHASE_NAMES = ["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"] as const;
+const PHASE_NAMES = ["brainstorm", "research", "architecture", "tasks", "design", "coding"] as const;
 type PhaseName = (typeof PHASE_NAMES)[number];
 
 const SUMMARY_THRESHOLD = 6; // regenerate after 6+ new entries

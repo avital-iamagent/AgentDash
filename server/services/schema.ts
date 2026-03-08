@@ -17,12 +17,11 @@ export const metaSchema = z.object({
   schemaVersion: z.number().optional().default(0),
   projectName: z.string(),
   createdAt: z.string(),
-  activePhase: z.enum(["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"]),
+  activePhase: z.enum(["brainstorm", "research", "architecture", "tasks", "design", "coding"]),
   phases: z.object({
     brainstorm: phaseMetaSchema,
     research: phaseMetaSchema,
     architecture: phaseMetaSchema,
-    environment: phaseMetaSchema,
     tasks: phaseMetaSchema,
     design: phaseMetaSchema,
     coding: phaseMetaSchema,
@@ -126,24 +125,6 @@ export const architectureStateSchema = z.object({
   risks: z.array(riskSchema),
 });
 
-// --- environment/state.json ---
-const checklistItemSchema = z.object({
-  id: z.string(),
-  task: z.string(),
-  status: z.enum(["pending", "done", "failed"]),
-  command: z.string().optional(),
-  output: z.string().optional(),
-});
-
-export const environmentStateSchema = z.object({
-  updatedAt: z.string().nullable(),
-  updatedBy: z.string(),
-  checklist: z.array(checklistItemSchema),
-  dependencies: z.array(z.string()),
-  configs: z.array(z.string()),
-  verification: z.array(z.string()),
-});
-
 // --- tasks/state.json ---
 const taskItemSchema = z.object({
   id: z.string(),
@@ -159,12 +140,14 @@ const taskItemSchema = z.object({
   notes: z.string().optional(),
   designNotes: z.string().optional(),
   visualId: z.string().optional(),
+  verify: z.array(z.string()).optional(),
 });
 
 const milestoneSchema = z.object({
   id: z.string(),
   name: z.string(),
   tasks: z.array(z.string()),
+  verify: z.array(z.string()).optional(),
 });
 
 export const tasksStateSchema = z.object({
@@ -197,7 +180,6 @@ export const phaseSchemas = {
   brainstorm: brainstormStateSchema,
   research: researchStateSchema,
   architecture: architectureStateSchema,
-  environment: environmentStateSchema,
   tasks: tasksStateSchema,
   design: designPhaseStateSchema,
   coding: codingStateSchema,

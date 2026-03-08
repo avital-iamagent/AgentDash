@@ -74,7 +74,6 @@ stateRoutes.get("/phase/:name/artifact", async (req, res) => {
       brainstorm: "concept-brief.md",
       research: "research-decisions.md",
       architecture: "architecture-spec.md",
-      environment: "environment-ready.md",
       tasks: "task-breakdown.md",
       design: "design-brief.md",
     };
@@ -168,7 +167,7 @@ stateRoutes.get("/research-notes", async (_req, res) => {
   try {
     const dir = requireProject();
     const allNotes: string[] = [];
-    const phases = ["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"];
+    const phases = ["brainstorm", "research", "architecture", "tasks", "design", "coding"];
     for (const phase of phases) {
       const notesDir = path.join(dir, ".agentdash", phase, "research-notes");
       try {
@@ -200,7 +199,7 @@ stateRoutes.post("/research-notes", async (req, res) => {
     const dir = requireProject();
     const { phase, question, content } = req.body;
 
-    const validPhases = ["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"];
+    const validPhases = ["brainstorm", "research", "architecture", "tasks", "design", "coding"];
     if (!phase || !validPhases.includes(phase)) {
       res.status(400).json({ error: "Invalid phase" });
       return;
@@ -237,7 +236,7 @@ stateRoutes.get("/research-notes/:phase/:filename", async (req, res) => {
     const dir = requireProject();
     const { phase, filename } = req.params;
 
-    const validPhases = ["brainstorm", "research", "architecture", "environment", "tasks", "design", "coding"];
+    const validPhases = ["brainstorm", "research", "architecture", "tasks", "design", "coding"];
     if (!validPhases.includes(phase)) {
       res.status(400).json({ error: "Invalid phase" });
       return;

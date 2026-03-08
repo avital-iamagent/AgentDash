@@ -13,7 +13,6 @@ import ReviewPanel from "./components/layout/ReviewPanel";
 import BrainstormBoard from "./components/phases/BrainstormBoard";
 import ResearchGrid from "./components/phases/ResearchGrid";
 import ArchitectureView from "./components/phases/ArchitectureView";
-import EnvironmentChecklist from "./components/phases/EnvironmentChecklist";
 import TaskBoard from "./components/phases/TaskBoard";
 import DesignBoard from "./components/phases/DesignBoard";
 import VisualsPanel from "./components/phases/VisualsPanel";
@@ -35,7 +34,7 @@ const TABS: { key: TabName; label: string; hideForPhases?: string[] }[] = [
   { key: "artifact", label: "Handoff", hideForPhases: ["tasks", "design", "coding"] },
   { key: "review", label: "Validate", hideForPhases: ["tasks", "design", "coding"] },
   { key: "notes", label: "Research Notes", hideForPhases: ["tasks", "design", "coding"] },
-  { key: "visuals", label: "Visuals", hideForPhases: ["brainstorm", "research", "architecture", "environment", "coding"] },
+  { key: "visuals", label: "Visuals", hideForPhases: ["brainstorm", "research", "architecture", "coding"] },
 ];
 
 function Dashboard() {
@@ -224,7 +223,6 @@ const PHASE_VIEWS: Record<PhaseName, React.ComponentType> = {
   brainstorm: BrainstormBoard,
   research: ResearchGrid,
   architecture: ArchitectureView,
-  environment: EnvironmentChecklist,
   tasks: TaskBoard,
   design: DesignBoard,
   coding: TaskBoard,

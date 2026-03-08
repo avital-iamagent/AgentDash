@@ -7,7 +7,6 @@ const PHASES: { key: PhaseName; label: string }[] = [
   { key: "brainstorm", label: "Brainstorm" },
   { key: "research", label: "Research" },
   { key: "architecture", label: "Architecture" },
-  { key: "environment", label: "Environment" },
   { key: "tasks", label: "Tasks" },
 ];
 

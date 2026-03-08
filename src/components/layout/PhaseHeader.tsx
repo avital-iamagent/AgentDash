@@ -17,11 +17,6 @@ const PHASE_INFO: Record<PhaseName, { label: string; personality: string; descri
     personality: "Pragmatic Engineer",
     description: "Designing components, defining interfaces, managing complexity",
   },
-  environment: {
-    label: "Environment",
-    personality: "Meticulous Ops",
-    description: "Verifying tools, pinning dependencies, running checklists",
-  },
   tasks: {
     label: "Tasks",
     personality: "Clear-Headed PM",
@@ -60,7 +55,7 @@ export default function PhaseHeader() {
             {info.personality}
           </span>
           {phaseStatus === "completed" && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono text-phase-environment bg-phase-environment/10">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono text-success bg-success/10">
               completed
             </span>
           )}

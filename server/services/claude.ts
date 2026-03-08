@@ -13,10 +13,9 @@ const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
   research: "/phase-2-research",
   architecture: "/phase-3-architecture",
-  environment: "/phase-4-environment",
-  tasks: "/phase-5-tasks",
-  design: "/phase-6-design",
-  coding: "/phase-7-coding",
+  tasks: "/phase-4-tasks",
+  design: "/phase-5-design",
+  coding: "/phase-6-coding",
 };
 
 /**

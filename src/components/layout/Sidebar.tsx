@@ -60,7 +60,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-2">
           <div
             className={`w-1.5 h-1.5 rounded-full ${
-              wsConnected ? "bg-phase-environment" : "bg-phase-tasks"
+              wsConnected ? "bg-success" : "bg-phase-tasks"
             }`}
             style={wsConnected ? { animation: "pulse-dot 3s ease-in-out infinite" } : undefined}
           />

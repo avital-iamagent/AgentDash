@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { INITIAL_STATES } from "../routes/project.js";
 
-export const LATEST_VERSION = 2;
+export const LATEST_VERSION = 3;
 
 interface Migration {
   version: number;
@@ -65,6 +65,27 @@ const MIGRATIONS: Migration[] = [
     migrate: async (projectDir, meta) => {
       const memoryDir = path.join(projectDir, ".agentdash", "memory");
       await fs.mkdir(memoryDir, { recursive: true });
+      return meta;
+    },
+  },
+  {
+    version: 3,
+    name: "remove-environment-phase",
+    migrate: async (_projectDir, meta) => {
+      // Remove environment phase from meta
+      if (meta.phases?.environment) {
+        delete meta.phases.environment;
+      }
+
+      // If activePhase was environment, move to tasks
+      if (meta.activePhase === "environment") {
+        meta.activePhase = "tasks";
+        if (meta.phases?.tasks?.status === "locked") {
+          meta.phases.tasks.status = "active";
+          meta.phases.tasks.startedAt = new Date().toISOString();
+        }
+      }
+
       return meta;
     },
   },

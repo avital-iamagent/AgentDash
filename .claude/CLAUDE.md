@@ -14,7 +14,7 @@ Memory and conversation summaries are in `.agentdash/memory/`.
 - Preserve all existing fields — only update what's needed
 
 ## Skills
-Use /phase-1-brainstorm through /phase-7-coding for phase work.
+Use /phase-1-brainstorm through /phase-6-coding for phase work.
 Use /phase-review for end-of-phase audit (optional).
 Use /research-assistant for ad-hoc research in any phase.
 
