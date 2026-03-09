@@ -105,16 +105,29 @@ const decisionSchema = z.object({
 
 const diagramSchema = z.object({
   id: z.string().optional(),
-  title: z.string(),
-  mermaid: z.string(),
-});
+  title: z.string().optional(),
+  name: z.string().optional(),
+  mermaid: z.string().optional(),
+  content: z.string().optional(),
+  type: z.string().optional(),
+}).transform(d => ({
+  id: d.id,
+  title: d.title || d.name || "",
+  mermaid: d.mermaid || d.content || "",
+}));
 
 const riskSchema = z.object({
   id: z.string().optional(),
-  description: z.string(),
+  description: z.string().optional(),
+  risk: z.string().optional(),
   severity: z.enum(["high", "medium", "low"]),
   mitigation: z.string(),
-});
+}).transform(r => ({
+  id: r.id,
+  description: r.description || r.risk || "",
+  severity: r.severity,
+  mitigation: r.mitigation,
+}));
 
 export const architectureStateSchema = z.object({
   updatedAt: z.string().nullable(),
