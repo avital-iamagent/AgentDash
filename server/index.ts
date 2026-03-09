@@ -17,8 +17,11 @@ import { userConfig } from "./config.js";
 
 const app = express();
 
-// CORS — permissive for local dev, lock down in production
-app.use(cors({ origin: process.env.CORS_ORIGIN || true }));
+// CORS — restricted to localhost by default; override with CORS_ORIGIN env var
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : ["http://localhost:3141", "http://127.0.0.1:3141"];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "5mb" }));
 
 // REST routes
@@ -77,9 +80,10 @@ wss.on("error", (err) => {
 });
 
 const PORT = process.env.PORT || userConfig.port || 3001;
+const HOST = process.env.HOST || "127.0.0.1";
 const proto = hasCerts ? "https" : "http";
-server.listen(Number(PORT), "0.0.0.0", () => {
-  console.log(`AgentDash server running on ${proto}://0.0.0.0:${PORT}`);
+server.listen(Number(PORT), HOST, () => {
+  console.log(`AgentDash server running on ${proto}://${HOST}:${PORT}`);
 });
 
 export { server, wss };
