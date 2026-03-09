@@ -4,7 +4,7 @@ A visual project dashboard where you and Claude Code collaborate through the ful
 
 AgentDash is a web wrapper around Claude Code, built on the [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk). It doesn't call the Anthropic API directly — it spawns Claude Code as a subprocess and communicates through the SDK, inheriting your existing Claude Code authentication. If Claude Code works on your machine, AgentDash works too.
 
-Instead of free-form chat, it turns Claude Code into a structured development partner that guides your project through five phases, each with a dedicated AI personality and a clear handoff to the next. All state lives in your file system as readable JSON and Markdown — no databases, no cloud, no magic.
+Instead of free-form chat, it turns Claude Code into a structured development partner that guides your project through six phases, each with a dedicated AI personality and a clear handoff to the next. All state lives in your file system as readable JSON and Markdown — no databases, no cloud, no magic.
 
 ## How It Works
 
@@ -12,15 +12,16 @@ You type prompts in the browser. Claude Code reads and writes structured files i
 
 The UI is read-only — only Claude modifies project state. This keeps things simple and conflict-free.
 
-## The Five Phases
+## The Six Phases
 
 | Phase | AI Personality | What Happens |
 |-------|---------------|-------------|
 | **Brainstorm** | The Devil's Advocate | Capture and challenge ideas on a card canvas |
 | **Research** | The Skeptical Analyst | Gather evidence, question sources, build a knowledge base |
 | **Architecture** | The Pragmatic Engineer | Design components and relationships with Mermaid diagrams |
-| **Environment** | The Meticulous Ops Engineer | Set up everything needed before writing code |
-| **Tasks** | The Clear-Headed PM | Break work into a Kanban board, then execute with a built-in coding mode (The Master Engineer) that works through tasks, commits after each, and updates state in place |
+| **Tasks** | The Clear-Headed PM | Break work into milestones and tasks on a Kanban board |
+| **Design** | The Creative Director | Review UI tasks, generate reference mockups with AI image generation, annotate tasks with design notes |
+| **Coding** | The Master Engineer | Work through tasks sequentially, verify each one, commit, and update state in place |
 
 Each phase produces a compact handoff artifact that becomes the sole context for the next phase — solving the AI context-loss problem.
 
@@ -28,6 +29,14 @@ Each phase produces a compact handoff artifact that becomes the sole context for
 
 - **Research Assistant** — spin up in any phase to investigate a question without leaving your current work
 - **Phase Review** — optional auditor that checks completeness and consistency at the end of a phase
+
+### Nano Banana (AI Visuals)
+
+Optional AI image generation powered by Google Gemini. During the Design phase, Claude can generate UI reference mockups to visualize what you're building before writing code. Images are stored locally and displayed in a gallery panel with lightbox, download, and pop-out support. Requires a free [Google API key](https://aistudio.google.com/apikey).
+
+### Text-to-Speech
+
+Optional real-time TTS that reads Claude's streamed responses aloud. Strips code blocks and markdown for natural speech. Enable with `agentdash --tts on` or during the installer.
 
 ## Prerequisites
 
@@ -103,7 +112,7 @@ This starts Vite (frontend) and tsx watch (backend) concurrently.
 
 ## Tech Stack
 
-React 19, TypeScript, Vite, Tailwind CSS, Express 5, WebSocket, Zustand, Zod, Mermaid.js, Claude Agent SDK
+React 19, TypeScript, Vite, Tailwind CSS 4, Express 5, WebSocket, Zustand, Zod, Mermaid.js, Google Gemini API, Claude Agent SDK
 
 ## License
 
