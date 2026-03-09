@@ -101,15 +101,6 @@ agentdash --help           Show this help message
 
 Configuration is stored in `~/.agentdash/config.json`.
 
-## Development
-
-```bash
-# Run dev server with hot reload (frontend + backend)
-npm run dev
-```
-
-This starts Vite (frontend) and tsx watch (backend) concurrently.
-
 ## Tech Stack
 
 React 19, TypeScript, Vite, Tailwind CSS 4, Express 5, WebSocket, Zustand, Zod, Mermaid.js, Google Gemini API, Claude Agent SDK
