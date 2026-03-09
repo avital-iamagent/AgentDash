@@ -80,7 +80,7 @@ wss.on("error", (err) => {
 });
 
 const PORT = process.env.PORT || userConfig.port || 3001;
-const HOST = process.env.HOST || "127.0.0.1";
+const HOST = process.env.HOST || userConfig.host || "127.0.0.1";
 const proto = hasCerts ? "https" : "http";
 server.listen(Number(PORT), HOST, () => {
   console.log(`AgentDash server running on ${proto}://${HOST}:${PORT}`);

@@ -4,6 +4,7 @@ import path from "path";
 export interface AgentDashConfig {
   tts?: boolean;
   port?: number;
+  host?: string;
   installPath?: string;
   googleApiKey?: string;
 }
