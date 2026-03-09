@@ -139,36 +139,88 @@ export const architectureStateSchema = z.object({
 });
 
 // --- tasks/state.json ---
+// Permissive task schema: accepts both canonical fields and common alternatives
 const taskItemSchema = z.object({
   id: z.string(),
   title: z.string(),
-  description: z.string(),
+  description: z.string().optional().default(""),
   acceptanceCriteria: z.array(z.string()).optional(),
   estimate: z.string().optional(),
-  priority: z.enum(["must", "should", "could"]),
+  priority: z.enum(["must", "should", "could"]).optional(),
+  // Accept alternative field names Claude may use
+  risk: z.string().optional(),
+  deps: z.array(z.string()).optional(),
   dependencies: z.array(z.string()).optional(),
-  status: z.enum(["pending", "in-progress", "done", "blocked"]),
+  status: z.string().default("pending"),
   milestone: z.string().optional(),
   commits: z.array(z.string()).optional(),
   notes: z.string().optional(),
   designNotes: z.string().optional(),
   visualId: z.string().optional(),
   verify: z.array(z.string()).optional(),
-});
+}).passthrough().transform(t => ({
+  ...t,
+  description: t.description || "",
+  priority: t.priority || (t.risk === "high" ? "must" : t.risk === "medium" ? "should" : "could") as "must" | "should" | "could",
+  dependencies: t.dependencies || t.deps || [],
+  status: (["pending", "in-progress", "done", "blocked"].includes(t.status) ? t.status : "pending") as "pending" | "in-progress" | "done" | "blocked",
+}));
 
+// Milestones: tasks can be string IDs or inline task objects
 const milestoneSchema = z.object({
   id: z.string(),
   name: z.string(),
-  tasks: z.array(z.string()),
+  status: z.string().optional(),
+  tasks: z.array(z.union([z.string(), z.record(z.unknown())])),
   verify: z.array(z.string()).optional(),
-});
+}).passthrough();
 
+// The main transform: if no top-level `tasks`, extract them from milestones
 export const tasksStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  tasks: z.array(taskItemSchema),
-  milestones: z.array(milestoneSchema),
-  currentTask: z.string().nullable(),
+  tasks: z.array(z.unknown()).optional(),
+  milestones: z.array(milestoneSchema).optional().default([]),
+  currentTask: z.string().nullable().optional().default(null),
+}).passthrough().transform(raw => {
+  const milestones = raw.milestones || [];
+  let tasks = raw.tasks as unknown[];
+
+  // If no top-level tasks, extract from inline milestone tasks
+  if (!tasks || tasks.length === 0) {
+    const extracted: unknown[] = [];
+    for (const ms of milestones) {
+      for (const t of ms.tasks) {
+        if (typeof t === "object" && t !== null) {
+          extracted.push({ ...(t as Record<string, unknown>), milestone: ms.id });
+        }
+      }
+    }
+    tasks = extracted;
+  }
+
+  // Parse each task through the permissive schema
+  type TaskItem = z.infer<typeof taskItemSchema>;
+  const parsedTasks: TaskItem[] = tasks.map(t => {
+    const result = taskItemSchema.safeParse(t);
+    return result.success ? result.data : t as TaskItem;
+  });
+
+  // Normalize milestone.tasks to string IDs
+  const normalizedMilestones = milestones.map(ms => ({
+    ...ms,
+    tasks: ms.tasks.map(t =>
+      typeof t === "string" ? t : (t as Record<string, unknown>).id as string ?? ""
+    ),
+  }));
+
+  return {
+    updatedAt: raw.updatedAt,
+    updatedBy: raw.updatedBy,
+    tasks: parsedTasks,
+    milestones: normalizedMilestones,
+    currentTask: raw.currentTask,
+  };
 });
 
 // --- design/state.json ---
