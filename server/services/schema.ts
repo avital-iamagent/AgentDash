@@ -5,11 +5,11 @@ const phaseStatusSchema = z.enum(["locked", "active", "completed"]);
 
 // --- Per-phase metadata in meta.json ---
 const phaseMetaSchema = z.object({
-  status: phaseStatusSchema,
-  startedAt: z.string().nullable(),
-  completedAt: z.string().nullable(),
-  artifactApproved: z.boolean(),
-  reviewReport: z.string().nullable(),
+  status: phaseStatusSchema.catch("locked"),
+  startedAt: z.string().nullable().optional().default(null),
+  completedAt: z.string().nullable().optional().default(null),
+  artifactApproved: z.boolean().optional().default(false),
+  reviewReport: z.string().nullable().optional().default(null),
 });
 
 // --- meta.json ---
@@ -27,81 +27,166 @@ export const metaSchema = z.object({
     coding: phaseMetaSchema,
   }),
   git: z.object({
-    enabled: z.boolean(),
-    branch: z.string().nullable(),
-    lastCommit: z.string().nullable(),
-    remoteUrl: z.string().nullable(),
-    authMethod: z.string().nullable(),
-    gitDismissed: z.boolean(),
-  }),
+    enabled: z.boolean().optional().default(false),
+    branch: z.string().nullable().optional().default(null),
+    lastCommit: z.string().nullable().optional().default(null),
+    remoteUrl: z.string().nullable().optional().default(null),
+    authMethod: z.string().nullable().optional().default(null),
+    gitDismissed: z.boolean().optional().default(false),
+  }).optional().default({}),
 });
 
 // --- brainstorm/state.json ---
 const brainstormCardSchema = z.object({
   id: z.string(),
-  text: z.string(),
+  // Accept text/content/description/idea as the card body
+  text: z.string().optional(),
+  content: z.string().optional(),
+  description: z.string().optional(),
+  idea: z.string().optional(),
   group: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
-  status: z.enum(["proposed", "accepted", "rejected"]),
+  status: z.string().optional().default("proposed"),
   notes: z.string().optional(),
-  createdBy: z.enum(["user", "claude-code"]),
+  createdBy: z.string().optional().default("claude-code"),
   createdAt: z.string().optional(),
-});
+}).passthrough().transform(c => ({
+  ...c,
+  text: c.text || c.content || c.description || c.idea || "",
+  status: (["proposed", "accepted", "rejected"].includes(c.status ?? "") ? c.status : "proposed") as "proposed" | "accepted" | "rejected",
+  createdBy: (["user", "claude-code"].includes(c.createdBy ?? "") ? c.createdBy : "claude-code") as "user" | "claude-code",
+}));
 
 const brainstormGroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string().optional(),
-});
+}).passthrough();
 
 export const brainstormStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  cards: z.array(brainstormCardSchema),
-  groups: z.array(brainstormGroupSchema),
-  tags: z.array(z.string()),
+  // Accept cards/ideas/items as the array name
+  cards: z.array(z.unknown()).optional(),
+  ideas: z.array(z.unknown()).optional(),
+  items: z.array(z.unknown()).optional(),
+  groups: z.array(brainstormGroupSchema).optional().default([]),
+  tags: z.array(z.string()).optional().default([]),
+}).passthrough().transform(raw => {
+  type Card = z.infer<typeof brainstormCardSchema>;
+  const rawCards = raw.cards || raw.ideas || raw.items || [];
+  const cards: Card[] = rawCards.map(c => {
+    const result = brainstormCardSchema.safeParse(c);
+    return result.success ? result.data : c as Card;
+  });
+  return {
+    updatedAt: raw.updatedAt,
+    updatedBy: raw.updatedBy,
+    cards,
+    groups: raw.groups || [],
+    tags: raw.tags || [],
+  };
 });
 
 // --- research/state.json ---
 const researchSourceSchema = z.object({
-  title: z.string(),
+  title: z.string().optional().default(""),
+  name: z.string().optional(),
   url: z.string().optional(),
-});
+  link: z.string().optional(),
+}).passthrough().transform(s => ({
+  title: s.title || s.name || "",
+  url: s.url || s.link || undefined,
+}));
+
+const VALID_CATEGORIES = ["competitor", "tech-stack", "pattern", "risk"] as const;
+const VALID_VERDICTS = ["adopt", "learn-from", "avoid", "needs-more-research"] as const;
 
 const researchItemSchema = z.object({
   id: z.string(),
-  topic: z.string(),
-  category: z.enum(["competitor", "tech-stack", "pattern", "risk"]),
-  summary: z.string(),
-  status: z.string(),
-  verdict: z.enum(["adopt", "learn-from", "avoid", "needs-more-research"]),
-  sources: z.array(researchSourceSchema),
+  topic: z.string().optional().default(""),
+  name: z.string().optional(),
+  title: z.string().optional(),
+  category: z.string().optional().default("tech-stack"),
+  summary: z.string().optional().default(""),
+  description: z.string().optional(),
+  status: z.string().optional().default("researched"),
+  verdict: z.string().optional().default("needs-more-research"),
+  recommendation: z.string().optional(),
+  sources: z.array(z.unknown()).optional().default([]),
   findingsFile: z.string().nullable().optional(),
+}).passthrough().transform(item => {
+  const sources = (item.sources || []).map(s => {
+    const result = researchSourceSchema.safeParse(s);
+    return result.success ? result.data : { title: String(s), url: undefined };
+  });
+  return {
+    ...item,
+    topic: item.topic || item.name || item.title || "",
+    category: (VALID_CATEGORIES.includes(item.category as typeof VALID_CATEGORIES[number]) ? item.category : "tech-stack") as typeof VALID_CATEGORIES[number],
+    summary: item.summary || item.description || "",
+    verdict: (VALID_VERDICTS.includes((item.verdict || item.recommendation || "") as typeof VALID_VERDICTS[number])
+      ? (item.verdict || item.recommendation) : "needs-more-research") as typeof VALID_VERDICTS[number],
+    sources,
+  };
 });
 
 export const researchStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  items: z.array(researchItemSchema),
-  categories: z.array(z.string()),
-  verdicts: z.array(z.string()),
+  // Accept items/research/findings/entries as the array name
+  items: z.array(z.unknown()).optional(),
+  research: z.array(z.unknown()).optional(),
+  findings: z.array(z.unknown()).optional(),
+  entries: z.array(z.unknown()).optional(),
+  categories: z.array(z.string()).optional().default([]),
+  verdicts: z.array(z.string()).optional().default([]),
+}).passthrough().transform(raw => {
+  type ResearchItem = z.infer<typeof researchItemSchema>;
+  const rawItems = raw.items || raw.research || raw.findings || raw.entries || [];
+  const items: ResearchItem[] = rawItems.map(i => {
+    const result = researchItemSchema.safeParse(i);
+    return result.success ? result.data : i as ResearchItem;
+  });
+  return {
+    updatedAt: raw.updatedAt,
+    updatedBy: raw.updatedBy,
+    items,
+    categories: raw.categories || [],
+    verdicts: raw.verdicts || [],
+  };
 });
 
 // --- architecture/state.json ---
 const componentSchema = z.object({
   id: z.string().optional(),
   name: z.string(),
-  type: z.string(),
-  responsibility: z.string(),
+  type: z.string().optional().default("service"),
+  responsibility: z.string().optional(),
+  description: z.string().optional(),
   dependencies: z.array(z.string()).optional(),
-});
+  deps: z.array(z.string()).optional(),
+}).passthrough().transform(c => ({
+  ...c,
+  responsibility: c.responsibility || c.description || "",
+  dependencies: c.dependencies || c.deps || [],
+}));
 
 const decisionSchema = z.object({
   id: z.string().optional(),
-  choice: z.string(),
-  rationale: z.string(),
+  choice: z.string().optional(),
+  decision: z.string().optional(),
+  selected: z.string().optional(),
+  rationale: z.string().optional(),
+  reason: z.string().optional(),
+  why: z.string().optional(),
   alternatives: z.array(z.string()).optional(),
-});
+}).passthrough().transform(d => ({
+  ...d,
+  choice: d.choice || d.decision || d.selected || "",
+  rationale: d.rationale || d.reason || d.why || "",
+  alternatives: d.alternatives || [],
+}));
 
 const diagramSchema = z.object({
   id: z.string().optional(),
@@ -132,11 +217,11 @@ const riskSchema = z.object({
 export const architectureStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  components: z.array(componentSchema),
-  decisions: z.array(decisionSchema),
-  diagrams: z.array(diagramSchema),
-  risks: z.array(riskSchema),
-});
+  components: z.array(componentSchema).optional().default([]),
+  decisions: z.array(decisionSchema).optional().default([]),
+  diagrams: z.array(diagramSchema).optional().default([]),
+  risks: z.array(riskSchema).optional().default([]),
+}).passthrough();
 
 // --- tasks/state.json ---
 // Permissive task schema: accepts both canonical fields and common alternatives
@@ -227,18 +312,18 @@ export const tasksStateSchema = z.object({
 export const designPhaseStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-  reviewedTasks: z.array(z.union([z.string(), z.record(z.unknown())])),
-  designTheme: z.union([z.string(), z.record(z.unknown())]).nullable(),
-  colorPalette: z.union([z.string(), z.record(z.unknown())]).nullable(),
-  typography: z.union([z.string(), z.record(z.unknown())]).nullable(),
-  notes: z.union([z.string(), z.record(z.unknown())]).nullable(),
+  reviewedTasks: z.array(z.union([z.string(), z.record(z.unknown())])).optional().default([]),
+  designTheme: z.union([z.string(), z.record(z.unknown())]).nullable().optional().default(null),
+  colorPalette: z.union([z.string(), z.record(z.unknown())]).nullable().optional().default(null),
+  typography: z.union([z.string(), z.record(z.unknown())]).nullable().optional().default(null),
+  notes: z.union([z.string(), z.record(z.unknown())]).nullable().optional().default(null),
 }).passthrough();
 
 // --- coding/state.json ---
 export const codingStateSchema = z.object({
   updatedAt: z.string().nullable(),
   updatedBy: z.string(),
-});
+}).passthrough();
 
 // --- Schema lookup by phase name ---
 export const phaseSchemas = {
