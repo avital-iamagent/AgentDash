@@ -43,7 +43,7 @@ Before generating the task-breakdown artifact, verify:
 If any item fails, refine the task list before generating.
 
 ### When Planning Is Complete
-Generate `.agentdash/artifacts/task-breakdown.md` using template at `.agentdash/templates/task-breakdown.template.md`. Keep under 50 lines.
+Generate `.agentdash/artifacts/task-breakdown.md` using template at `.agentdash/templates/task-breakdown.template.md`. Keep under 100 lines.
 
 After the artifact is approved, the next phase is **Design** (not Coding). Design reviews UI-facing tasks before implementation begins. Non-UI projects can skip Design.
 

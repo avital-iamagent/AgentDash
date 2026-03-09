@@ -46,4 +46,4 @@ Before generating the architecture-spec artifact, verify:
 If any item fails, refine the architecture before generating.
 
 ## When Complete
-Generate `.agentdash/artifacts/architecture-spec.md` using template at `.agentdash/templates/architecture-spec.template.md`. Keep under 80 lines.
+Generate `.agentdash/artifacts/architecture-spec.md` using template at `.agentdash/templates/architecture-spec.template.md`. Keep under 100 lines.

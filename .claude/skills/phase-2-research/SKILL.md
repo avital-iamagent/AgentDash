@@ -45,4 +45,4 @@ Before generating the research-decisions artifact, verify:
 If any item fails, do more research or refine with the user before generating.
 
 ## When Complete
-Generate `.agentdash/artifacts/research-decisions.md` using template at `.agentdash/templates/research-decisions.template.md`. Keep under 45 lines.
+Generate `.agentdash/artifacts/research-decisions.md` using template at `.agentdash/templates/research-decisions.template.md`. Keep under 100 lines.

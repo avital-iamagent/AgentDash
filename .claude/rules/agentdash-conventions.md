@@ -7,10 +7,7 @@
 - Validate with zod schema before writing if possible
 
 ## Artifacts
-- Max 50 lines for concept-brief, 45 for research-decisions
-- Max 80 lines for architecture-spec
-- Max 50 lines for task-breakdown
-- Max 60 lines for design-brief
+- Max 100 lines for all artifacts (concept-brief, research-decisions, architecture-spec, task-breakdown, design-brief)
 - Use the template from `.agentdash/templates/`
 - Artifacts are the ONLY thing the next phase reads from you
 

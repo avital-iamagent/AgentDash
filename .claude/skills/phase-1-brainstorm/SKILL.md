@@ -75,4 +75,4 @@ Before generating the concept-brief, verify every item passes:
 If any item fails, refine with the user before generating.
 
 ## When Complete
-Generate `.agentdash/artifacts/concept-brief.md` using template at `.agentdash/templates/concept-brief.template.md`. Keep under 50 lines.
+Generate `.agentdash/artifacts/concept-brief.md` using template at `.agentdash/templates/concept-brief.template.md`. Keep under 100 lines.

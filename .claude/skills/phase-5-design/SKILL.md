@@ -81,4 +81,4 @@ Both are **strings**. Do NOT use objects.
 All UI-facing tasks must have `designNotes` populated before producing the artifact.
 
 ## Artifact
-When design review is complete, write `.agentdash/artifacts/design-brief.md` using the template from `.agentdash/templates/design-brief.template.md`. Max 60 lines.
+When design review is complete, write `.agentdash/artifacts/design-brief.md` using the template from `.agentdash/templates/design-brief.template.md`. Max 100 lines.
