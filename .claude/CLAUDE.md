@@ -52,6 +52,9 @@ Use /research-assistant for ad-hoc research in any phase.
 The UI is read-only. You are the sole writer of all `.agentdash/` files.
 The user communicates only through prompts. Every state change goes through you.
 
+## Git Commits
+After completing a coding milestone, feature, or bug fix, check if the project has git initialized. If it does, ask the user if they'd like to commit the changes. Include a brief summary of what was done so they can decide. Do not commit automatically — always ask first.
+
 ## Artifacts
 Compact handoff documents live in `.agentdash/artifacts/`.
 Templates are in `.agentdash/templates/`.
