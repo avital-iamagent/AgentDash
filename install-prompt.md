@@ -187,14 +187,9 @@ If they say **yes**:
 - Validate it's non-empty and starts with `AIza`. If not, warn and ask again.
 - Store it in `~/.agentdash/config.json` as `googleApiKey`.
 - Print: `  ✅  Nano Banana enabled — Visuals tab will be active`
-- 💡 **Important:** Also add the key to the environment so the server can use it. Append to `~/.zshrc` (if not already present):
-  ```
-  export GOOGLE_API_KEY="<their-key>"
-  ```
-  Print: `  ✅  GOOGLE_API_KEY added to ~/.zshrc`
 
 If they say **no**:
-- Print: `  ☐  Nano Banana skipped — you can set it up later by adding GOOGLE_API_KEY to your environment`
+- Print: `  ☐  Nano Banana skipped — you can set it up later by adding googleApiKey to ~/.agentdash/config.json`
 
 Then ask about port:
 
