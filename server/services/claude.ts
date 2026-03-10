@@ -11,6 +11,33 @@ import {
 import { createAgentDashMcpServer } from "./mcp-tools.js";
 
 /**
+ * If there's a task currently in-progress, returns a short reminder to mark it
+ * done when finished. Returns null when there's no active task (all done, or
+ * user is just chatting) — no noise in that case.
+ */
+async function buildTaskStateReminder(projectDir: string): Promise<string | null> {
+  try {
+    const raw = await fs.readFile(
+      path.join(projectDir, ".agentdash", "tasks", "state.json"),
+      "utf-8"
+    );
+    const state = JSON.parse(raw);
+    const tasks: { id: string; title: string; status: string }[] = state.tasks || [];
+    if (tasks.length === 0) return null;
+
+    const current = state.currentTask
+      ? tasks.find((t) => t.id === state.currentTask)
+      : null;
+
+    if (!current || current.status !== "in-progress") return null;
+
+    return `Active task: "${current.title}" (${current.id}). When this task is complete, update .agentdash/tasks/state.json — set status to "done", append the commit hash to commits, and set currentTask to null.`;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Lightweight auth check — starts a minimal SDK query, waits for the
  * auth_status message, then aborts before any tokens are consumed.
  */
@@ -149,6 +176,15 @@ export async function* sendPrompt(
     if (relevant) {
       sections.push(`## Relevant past context\n${relevant}`);
     }
+
+    // In coding phase, inject current task state so the agent knows what to update
+    if (phase === "coding") {
+      const taskStateReminder = await buildTaskStateReminder(projectDir);
+      if (taskStateReminder) {
+        sections.push(taskStateReminder);
+      }
+    }
+
     sections.push(`## User's message\n${userPrompt}`);
 
     fullPrompt = sections.join("\n\n");
