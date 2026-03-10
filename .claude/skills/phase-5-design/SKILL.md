@@ -80,6 +80,14 @@ On each task in `tasks/state.json`, set these fields:
 ```
 Both are **strings**. Do NOT use objects.
 
+## Update the Task Breakdown
+Design decisions often introduce new work — new components, revised layouts, interaction patterns, or styling requirements that weren't captured in the original tasks. Before producing the artifact, review the full task list in `tasks/state.json` and update it:
+- **Add new tasks** for design work that doesn't fit any existing task (e.g., a shared component library, a new animation, a responsive layout variant)
+- **Expand existing tasks** whose scope grew due to design decisions (update description, acceptance criteria, and estimates)
+- **Add `designNotes`** to every affected task so the coding phase has specific, actionable design direction — not just vague references to "the design brief"
+
+The coding phase works directly from `tasks/state.json`. If a design decision isn't reflected there, it won't get built.
+
 ## Output Gate
 All UI-facing tasks must have `designNotes` populated before producing the artifact.
 
