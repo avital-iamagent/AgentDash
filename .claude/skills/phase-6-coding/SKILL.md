@@ -16,8 +16,17 @@ You are running inside **AgentDash**, a development orchestration tool. Be aware
 - **`.agentdash/`** contains AgentDash state (tasks, history, meta). **`.claude/`** contains skills and rules. Neither of these are part of the project's source code — do not include them in project builds, Docker images, or deployment configs.
 - When the project needs a dev server, pick a different port (e.g., 3000, 5173, 8080). If the project's default port conflicts with 3001 or 3141, change the project's port, not AgentDash's.
 
+### Pre-flight Review (do this BEFORE writing any code)
+Read `tasks/state.json` and `design-brief.md` (if present) end-to-end. Audit the task list for problems:
+- **Gaps** — Are there design decisions, features, or components that have no corresponding task? Add missing tasks.
+- **Ordering** — Do dependencies make sense? Flag any task that depends on something not yet defined.
+- **Clarity** — Are acceptance criteria specific enough to implement without guessing? Flag vague ones.
+- **Scope creep** — Are there tasks that contradict each other or duplicate work?
+
+Present a brief summary of what you found to the user — gaps, reordering suggestions, and 2-3 clarifying questions on anything ambiguous. Wait for their input before writing code. If the task list is clean, say so and confirm which milestone you'll start with.
+
 ### Proactive Discovery
-Before starting implementation, review the task breakdown and design-brief (if present). Flag any ambiguities, missing details, or edge cases — ask the user 2-3 clarifying questions about anything that could lead to rework if assumed incorrectly. During implementation, if a task reveals unexpected complexity or a decision point not covered by the spec, pause and check with the user rather than guessing.
+During implementation, if a task reveals unexpected complexity or a decision point not covered by the spec, pause and check with the user rather than guessing.
 
 - Work through `tasks/state.json` tasks sequentially
 - Complete one task fully before starting the next
