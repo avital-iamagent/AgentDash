@@ -1,6 +1,7 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 import {
   shouldRegenerateSummary,
   generatePhaseSummary,
@@ -76,12 +77,40 @@ const PHASE_SKILLS: Record<string, string> = {
  * - result — final summary with subtype, cost, duration, turn count
  * - tool_progress — long-running tool updates
  */
+interface AttachmentPayload {
+  name: string;
+  data: string; // base64
+  mimeType: string;
+}
+
+const MIME_TO_EXT: Record<string, string> = {
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/gif": ".gif",
+  "image/webp": ".webp",
+};
+
+async function saveAttachments(attachments: AttachmentPayload[]): Promise<string[]> {
+  const tmpDir = path.join(os.tmpdir(), "agentdash-uploads");
+  await fs.mkdir(tmpDir, { recursive: true });
+  const paths: string[] = [];
+  for (const att of attachments) {
+    const ext = MIME_TO_EXT[att.mimeType] || ".png";
+    const filename = `${crypto.randomUUID()}${ext}`;
+    const filePath = path.join(tmpDir, filename);
+    await fs.writeFile(filePath, Buffer.from(att.data, "base64"));
+    paths.push(filePath);
+  }
+  return paths;
+}
+
 export async function* sendPrompt(
   userPrompt: string,
   phase: string,
   projectDir: string,
   onPermissionRequest?: (toolName: string, input: Record<string, unknown>) => Promise<boolean>,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  attachments?: AttachmentPayload[]
 ) {
   const skillPrefix = PHASE_SKILLS[phase];
   if (!skillPrefix) throw new Error(`Unknown phase: ${phase}`);
@@ -123,6 +152,15 @@ export async function* sendPrompt(
     sections.push(`## User's message\n${userPrompt}`);
 
     fullPrompt = sections.join("\n\n");
+  }
+
+  // Save attachments to temp files and append read instructions to the prompt
+  if (attachments && attachments.length > 0) {
+    const filePaths = await saveAttachments(attachments);
+    const readInstructions = filePaths
+      .map((p) => `Read and analyze this screenshot: ${p}`)
+      .join("\n");
+    fullPrompt += `\n\n## Attached screenshots\n${readInstructions}`;
   }
 
   const canUseTool = onPermissionRequest

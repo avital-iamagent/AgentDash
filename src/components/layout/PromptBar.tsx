@@ -1,14 +1,16 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { usePrompt } from "../../hooks/usePrompt";
 import { useAppStore } from "../../stores/appStore";
 import { sendWsMessage } from "../../hooks/useWebSocket";
 
 export default function PromptBar() {
-  const { prompt, setPrompt, submit, submitResearch, isStreaming } = usePrompt();
+  const { prompt, setPrompt, submit, submitResearch, isStreaming, attachments, addAttachments, removeAttachment } = usePrompt();
   const wsConnected = useAppStore((s) => s.wsConnected);
   const researchMode = useAppStore((s) => s.researchMode);
   const setResearchMode = useAppStore((s) => s.setResearchMode);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -36,10 +38,66 @@ export default function PromptBar() {
     }
   }
 
-  const canSend = prompt.trim().length > 0 && !isStreaming && wsConnected;
+  // Paste handler for images from clipboard
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      addAttachments(imageFiles);
+    }
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      addAttachments(e.dataTransfer.files);
+    }
+  }, [addAttachments]);
+
+  const canSend = (prompt.trim().length > 0 || attachments.length > 0) && !isStreaming && wsConnected;
 
   return (
-    <div className={`border-t border-edge bg-panel px-4 py-3 ${isStreaming ? "prompt-glow" : ""}`}>
+    <div
+      className={`border-t border-edge bg-panel px-4 py-3 ${isStreaming ? "prompt-glow" : ""} ${isDragOver ? "ring-2 ring-accent/40 ring-inset" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) addAttachments(e.target.files);
+          e.target.value = "";
+        }}
+      />
+
       {/* Research mode pill */}
       {researchMode && (
         <div className="mb-2 flex items-center">
@@ -61,7 +119,42 @@ export default function PromptBar() {
         </div>
       )}
 
+      {/* Attachment previews */}
+      {attachments.length > 0 && (
+        <div className="mb-2 flex gap-2 flex-wrap">
+          {attachments.map((att) => (
+            <div key={att.id} className="relative group">
+              <img
+                src={att.previewUrl}
+                alt={att.name}
+                className="h-16 w-auto rounded-md border border-edge object-cover"
+              />
+              <button
+                onClick={() => removeAttachment(att.id)}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-ink text-canvas flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-end gap-2">
+        {/* Attachment button */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isStreaming}
+          title="Attach screenshot"
+          className="shrink-0 w-9 h-[40px] rounded-lg border border-edge text-ink-muted hover:text-ink hover:border-edge-bright flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
         {/* Input */}
         <div className="relative flex-1">
           <textarea
@@ -69,12 +162,15 @@ export default function PromptBar() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={
-              isStreaming
-                ? "Waiting for response..."
-                : researchMode
-                  ? "Ask a research question..."
-                  : "Ask Claude anything..."
+              isDragOver
+                ? "Drop image here..."
+                : isStreaming
+                  ? "Waiting for response..."
+                  : researchMode
+                    ? "Ask a research question..."
+                    : "Ask Claude anything..."
             }
             disabled={isStreaming}
             rows={1}

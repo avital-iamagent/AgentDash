@@ -3,10 +3,17 @@ import { sendPrompt, runResearch, runReview } from "../services/claude.js";
 import { getActiveProjectDir } from "../routes/project.js";
 import { askClientPermission, resolvePermission } from "../services/permissions.js";
 
+interface AttachmentPayload {
+  name: string;
+  data: string; // base64
+  mimeType: string;
+}
+
 interface PromptMessage {
   type: "prompt";
   phase: string;
   text: string;
+  attachments?: AttachmentPayload[];
 }
 
 interface ResearchMessage {
@@ -90,7 +97,7 @@ export function setupPromptHandler(wss: WebSocketServer) {
 
       switch (msg.type) {
         case "prompt":
-          generator = sendPrompt(msg.text, msg.phase, projectDir, onPermissionRequest, controller.signal);
+          generator = sendPrompt(msg.text, msg.phase, projectDir, onPermissionRequest, controller.signal, msg.attachments);
           break;
         case "research":
           generator = runResearch(msg.text, projectDir);
