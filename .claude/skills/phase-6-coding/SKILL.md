@@ -7,6 +7,32 @@ description: Coding phase. Use when implementing tasks from the breakdown. Maste
 
 You implement tasks from the task breakdown. Work through them one by one, verify before committing, and update the task state in place. New tasks can be added at any time.
 
+## Output Rules — What the User Sees
+
+Your text output appears in a dashboard chat panel. The user does NOT need to see your internal process. **Stay silent while working and only speak when you have something meaningful to say.**
+
+### What to output
+- **Task start**: one line — "Working on task X.Y — [title]"
+- **Task done**: brief summary of what was built and any decisions made
+- **Questions**: when you need user input to proceed
+- **Blockers**: when something fails and you can't resolve it
+- **Milestone complete**: summary of what the milestone delivered
+
+### What NOT to output
+- **Do not narrate tool usage.** Never write "Let me check...", "Let me read...", "Let me fix...", "Now I'll create...", "Let me verify..."
+- **Do not narrate debugging.** Never write "The issue is...", "The error is because...", "There's a problem with..." while you're still investigating. Fix it silently and only mention it in the task-done summary if it's noteworthy.
+- **Do not explain what you're about to do.** Just do it.
+- **Do not print intermediate investigation results.** If you're checking file existence, reading schemas, looking at configs — do that silently. Only report the outcome.
+- **Do not repeat file contents or error messages** unless the user needs to act on them.
+
+### The pattern
+```
+[silent work — read files, write code, run builds, debug, fix]
+→ "Task 4.1 complete — Setup wizard with provider selection, API key validation, and config file generation. All tests passing."
+[silent work on next task]
+→ "Task 4.2 complete — ..."
+```
+
 ## Infrastructure Awareness
 
 You are running inside **AgentDash**, a development orchestration tool. Be aware of the following:
@@ -28,13 +54,9 @@ Present a brief summary of what you found to the user — gaps, reordering sugge
 ### Proactive Discovery
 During implementation, if a task reveals unexpected complexity or a decision point not covered by the spec, pause and check with the user rather than guessing.
 
-- Work through `tasks/state.json` tasks sequentially
+- Work through `tasks/state.json` tasks sequentially by dependency order
 - Complete one task fully before starting the next
 - **Verify each task before committing** (see Verification below)
-- After verification passes, commit with a descriptive message and record the hash
-- Update the task in `tasks/state.json`: set `status`, `commits`, and optionally `notes`
-- Set `currentTask` to the ID of the task you're working on
-- If blocked, set `status: "blocked"` and explain in `notes`
 - Reference `designNotes` and `visualId` on tasks during implementation for UI work
 
 ## Working State
@@ -42,14 +64,41 @@ Read and update: `.agentdash/tasks/state.json`
 
 This is the same state file used during planning — tasks already exist here. Do not create a separate task list.
 
-## Task fields to update during execution
+## State Update Protocol (MANDATORY)
+
+You MUST update `tasks/state.json` at these moments. Every write must also set `updatedAt` (ISO 8601 UTC) and `updatedBy: "claude-code"` on the root object.
+
+### When starting a task
+1. Set `currentTask` to the task's `id`
+2. Set the task's `status` to `"in-progress"`
+3. Write the file immediately — do not wait until the task is done
+
+### When a task is done (after verification passes)
+1. Commit the **code changes first** (without `.agentdash/` files)
+2. Then update `tasks/state.json`:
+   - Set the task's `status` to `"done"`
+   - Append the code commit's short hash to the task's `commits` array
+   - Optionally add implementation `notes`
+   - Set `currentTask` to `null`
+3. Commit the state file separately (e.g., "Update task state: mark [task title] done")
+
+### When blocked
+1. Set the task's `status` to `"blocked"`
+2. Explain the blocker in the task's `notes` field
+3. Set `currentTask` to `null`
+4. Write the file and inform the user
+
+### Task fields reference
 ```json
 {
-  "status": "in-progress | done | blocked",
+  "status": "pending | in-progress | done | blocked",
   "commits": ["short-hash"],
-  "notes": "optional notes or blocker reason"
+  "notes": "optional — implementation notes or blocker reason"
 }
 ```
+
+### Why this matters
+The dashboard reads `tasks/state.json` to show progress. If you skip state updates, the UI shows stale data and the user can't track what's been completed. **Every task completion MUST be reflected in state.json.**
 
 ## Verification
 
