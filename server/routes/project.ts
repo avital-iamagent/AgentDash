@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import type { RecentProject, RecentProjectsFile } from "../types/index.js";
 import { detectGitStatus } from "./git.js";
 import { runMigrations, LATEST_VERSION } from "../services/migrate.js";
+import { checkAuth } from "../services/claude.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -211,6 +212,21 @@ projectRoutes.get("/pick-folder", async (_req, res) => {
   } catch {
     // User cancelled the dialog
     res.json({ dir: null });
+  }
+});
+
+// POST /api/project/check-auth — verify Claude Code authentication is valid
+projectRoutes.post("/check-auth", async (req, res) => {
+  const dir = req.body?.dir || activeProjectDir;
+  if (!dir) {
+    res.status(400).json({ ok: false, error: "No project directory available" });
+    return;
+  }
+  try {
+    const result = await checkAuth(dir);
+    res.json(result);
+  } catch (err) {
+    res.json({ ok: false, error: err instanceof Error ? err.message : String(err) });
   }
 });
 

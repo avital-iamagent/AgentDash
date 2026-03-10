@@ -9,6 +9,52 @@ import {
 } from "./memory.js";
 import { createAgentDashMcpServer } from "./mcp-tools.js";
 
+/**
+ * Lightweight auth check — starts a minimal SDK query, waits for the
+ * auth_status message, then aborts before any tokens are consumed.
+ */
+export async function checkAuth(projectDir: string): Promise<{ ok: boolean; error?: string }> {
+  const controller = new AbortController();
+  try {
+    const stream = query({
+      prompt: "Reply with OK",
+      options: {
+        cwd: projectDir,
+        systemPrompt: { type: "preset", preset: "claude_code" },
+        maxTurns: 1,
+        allowedTools: [],
+        ...(controller.signal && { signal: controller.signal }),
+      },
+    });
+
+    for await (const msg of stream) {
+      if (msg.type === "auth_status") {
+        const authMsg = msg as any;
+        if (authMsg.error) {
+          controller.abort();
+          return { ok: false, error: authMsg.error };
+        }
+        // Auth is valid — abort before any model invocation
+        controller.abort();
+        return { ok: true };
+      }
+      // If we get a stream_event or assistant msg, auth must be fine — abort
+      if (msg.type === "stream_event" || msg.type === "assistant" || msg.type === "result") {
+        controller.abort();
+        return { ok: true };
+      }
+    }
+
+    return { ok: true };
+  } catch (err) {
+    // AbortError is expected when we abort after successful auth check
+    if (err instanceof Error && (err.name === "AbortError" || err.message.includes("abort"))) {
+      return { ok: true };
+    }
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 const PHASE_SKILLS: Record<string, string> = {
   brainstorm: "/phase-1-brainstorm",
   research: "/phase-2-research",

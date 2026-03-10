@@ -41,10 +41,10 @@ export default function AuthErrorModal() {
         {/* Body */}
         <div className="px-5 py-4 space-y-3">
           <p className="text-sm text-ink-muted leading-relaxed">
-            Claude Code needs to re-authenticate. Run the following in your terminal:
+            Claude Code needs to re-authenticate. Run the following command inside Claude Code:
           </p>
           <code className="block bg-raised border border-edge rounded-lg px-4 py-2.5 text-sm font-mono text-ink">
-            claude login
+            /login
           </code>
           <p className="text-xs text-ink-faint">
             Once logged in, dismiss this and try your prompt again.

@@ -114,6 +114,27 @@ function Dashboard() {
     loadHistory();
   }, [loadHistory]);
 
+  // Check Claude authentication on mount
+  const setAuthError = useAppStore((s) => s.setAuthError);
+  const projectDir = useAppStore((s) => s.projectDir);
+  useEffect(() => {
+    if (!projectDir) return;
+    fetch("/api/project/check-auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dir: projectDir }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.ok) {
+          setAuthError(data.error || "Authentication failed");
+        }
+      })
+      .catch(() => {
+        // Network error — don't block the dashboard
+      });
+  }, [projectDir, setAuthError]);
+
   return (
     <div className="flex h-screen bg-canvas">
       <Sidebar />
