@@ -5,7 +5,8 @@ type FileChangedListener = (phase: string | null, file: string) => void;
 
 // Module-level state — singleton WebSocket shared by all consumers
 let socket: WebSocket | null = null;
-const MAX_RECONNECT_DELAY = 30000;
+const MAX_RECONNECT_DELAY = 5000;
+const CONNECT_TIMEOUT = 5000;
 
 const fileChangedListeners = new Set<FileChangedListener>();
 
@@ -121,6 +122,7 @@ export function useWebSocket() {
     let disposed = false;
     let localSocket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let connectTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
     let reconnectDelay = 1000;
 
     function connect() {
@@ -132,13 +134,24 @@ export function useWebSocket() {
       // Update module-level reference so sendWsMessage works
       socket = localSocket;
 
+      // If the socket doesn't open within CONNECT_TIMEOUT, kill it and retry.
+      // Without this, a down server can leave the socket in CONNECTING state
+      // for the full TCP timeout (30s–2min), stalling the reconnect loop.
+      connectTimeoutTimer = setTimeout(() => {
+        if (localSocket && localSocket.readyState === WebSocket.CONNECTING) {
+          localSocket.close();
+        }
+      }, CONNECT_TIMEOUT);
+
       localSocket.onopen = () => {
+        if (connectTimeoutTimer) clearTimeout(connectTimeoutTimer);
         if (disposed) return;
         setWsConnected(true);
         reconnectDelay = 1000;
       };
 
       localSocket.onclose = () => {
+        if (connectTimeoutTimer) clearTimeout(connectTimeoutTimer);
         if (disposed) return;
         setWsConnected(false);
         // Only null out module socket if it's still ours
@@ -160,9 +173,8 @@ export function useWebSocket() {
 
     return () => {
       disposed = true;
-      if (reconnectTimer) {
-        clearTimeout(reconnectTimer);
-      }
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (connectTimeoutTimer) clearTimeout(connectTimeoutTimer);
       if (localSocket) {
         localSocket.close();
         // Only clear module socket if it's still this instance
