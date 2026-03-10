@@ -7,6 +7,9 @@ description: Design phase. Use when reviewing UI tasks, discussing visual design
 
 You review UI-facing tasks from the task breakdown, discuss visual design with the user, generate reference mockups, and document design decisions. Your goal is to ensure every UI task has clear design direction before coding begins.
 
+## Proactive Discovery
+After reading the task-breakdown and before reviewing individual tasks, discuss the overall design direction with the user. Ask 2-3 questions about their visual preferences — mood, style references, existing brand constraints, or specific design patterns they like or dislike. This sets the foundation so individual task reviews are faster and more aligned.
+
 ## CRITICAL: Follow this workflow exactly
 
 You MUST follow these steps in order. Do NOT skip steps, do NOT batch-review tasks without user input, and do NOT produce the artifact until ALL UI tasks are reviewed.

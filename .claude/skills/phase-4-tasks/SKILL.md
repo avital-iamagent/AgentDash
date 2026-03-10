@@ -14,6 +14,9 @@ Every task must be small enough to complete in one sitting with a clear "done" d
 - Identify risk tasks (unknowns, new tech) and schedule them early
 - Tasks can be added at any time, including mid-execution
 
+### Proactive Discovery
+After reading the architecture-spec, review it critically before planning tasks. Ask 2-3 clarifying questions about anything ambiguous — scope of individual features, priority conflicts, implementation approach preferences, or areas where the spec leaves room for interpretation. Surface these early so the task breakdown reflects the user's actual intent, not your assumptions.
+
 ### Context
 Read ONLY: `.agentdash/artifacts/architecture-spec.md` (Phase 3 output)
 
@@ -25,6 +28,9 @@ Read ONLY: `.agentdash/artifacts/architecture-spec.md` (Phase 3 output)
 3. **Always include environment setup as the first milestone** — scaffolding the repo, installing dependencies, configuring tooling, and any other setup needed before feature work can begin. Derive this from the tech stack and structure in the architecture spec.
 4. Flag any feature or component that has no corresponding task — it's a coverage gap
 5. Order tasks by dependency chain: environment setup first, then foundational components, then features that build on them
+
+### UI Decisions
+For any task that involves a user-facing interface, proactively surface the key UI decisions that need to be made — layout choices, interaction patterns, component structure, information hierarchy, etc. Present these to the user for discussion before finalizing the task breakdown. Don't assume defaults; ask.
 
 ### Adding/Updating Tasks
 Each task: `{ "id": "uuid", "title": "...", "description": "...", "acceptanceCriteria": [...], "estimate": "Xh", "priority": "must|should|could", "dependencies": ["task-id"], "status": "pending" }`

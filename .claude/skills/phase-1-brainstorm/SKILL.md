@@ -24,6 +24,9 @@ Example format:
 
 Never ask more than 4–5 questions at once. Prioritize the most critical gaps.
 
+## Proactive Discovery
+Don't wait for the user to volunteer everything. After hearing the initial idea, actively probe for gaps — ask 2-3 focused questions at a time about target users, scope boundaries, existing solutions, success criteria, or risky assumptions. When the user answers, follow up on what their answer implies. Drive toward a concept-brief that leaves no critical question unanswered for the next phase.
+
 ## Context
 No previous artifact to read — this is Phase 1.
 

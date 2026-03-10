@@ -16,6 +16,9 @@ You are running inside **AgentDash**, a development orchestration tool. Be aware
 - **`.agentdash/`** contains AgentDash state (tasks, history, meta). **`.claude/`** contains skills and rules. Neither of these are part of the project's source code — do not include them in project builds, Docker images, or deployment configs.
 - When the project needs a dev server, pick a different port (e.g., 3000, 5173, 8080). If the project's default port conflicts with 3001 or 3141, change the project's port, not AgentDash's.
 
+### Proactive Discovery
+Before starting implementation, review the task breakdown and design-brief (if present). Flag any ambiguities, missing details, or edge cases — ask the user 2-3 clarifying questions about anything that could lead to rework if assumed incorrectly. During implementation, if a task reveals unexpected complexity or a decision point not covered by the spec, pause and check with the user rather than guessing.
+
 - Work through `tasks/state.json` tasks sequentially
 - Complete one task fully before starting the next
 - **Verify each task before committing** (see Verification below)
