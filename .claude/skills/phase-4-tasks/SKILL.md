@@ -35,12 +35,15 @@ For any task that involves a user-facing interface, proactively surface the key 
 ### Adding/Updating Tasks
 Each task: `{ "id": "uuid", "title": "...", "description": "...", "acceptanceCriteria": [...], "estimate": "Xh", "priority": "must|should|could", "dependencies": ["task-id"], "status": "pending" }`
 
+**Dependencies must be explicit task UUIDs.** Never use glob patterns like `"0.*"`, milestone references, or shorthand. Each entry in `dependencies` must match exactly one task's `id` field. This is what the coding phase uses to determine execution order — ambiguous references cause confusion.
+
 Group tasks into milestones.
 
 ### Artifact Quality Gate
 Before generating the task-breakdown artifact, verify:
 
 - [ ] Every acceptance criterion is testable (can be verified by running a command, checking output, or observing behavior)
+- [ ] Task dependencies use explicit task UUIDs — no globs, no wildcards, no milestone references
 - [ ] Task dependencies form a valid DAG — no cycles, no missing dependency IDs
 - [ ] Estimates are provided for every task and milestone totals are summed
 - [ ] Every core feature from the concept-brief is traceable to at least one task
