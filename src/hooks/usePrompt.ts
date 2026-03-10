@@ -7,7 +7,7 @@ export interface Attachment {
   name: string;
   data: string; // base64 without prefix
   mimeType: string;
-  previewUrl: string; // object URL for thumbnail
+  dataUrl: string; // full data URL for thumbnail preview
 }
 
 interface UsePromptResult {
@@ -40,38 +40,48 @@ export function usePrompt(): UsePromptResult {
   const setPendingQuestions = useAppStore((s) => s.setPendingQuestions);
 
   const addAttachments = useCallback((files: FileList | File[]) => {
-    const fileArray = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (fileArray.length === 0) return;
+    try {
+      const fileArray = Array.from(files).filter((f) =>
+        f.type.startsWith("image/")
+      );
+      if (fileArray.length === 0) return;
 
-    fileArray.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        // Strip the data:image/...;base64, prefix
-        const base64 = dataUrl.split(",")[1];
-        const previewUrl = URL.createObjectURL(file);
-        setAttachments((prev) => [
-          ...prev,
-          { id: genId(), name: file.name, data: base64, mimeType: file.type, previewUrl },
-        ]);
-      };
-      reader.readAsDataURL(file);
-    });
+      for (const file of fileArray) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const dataUrl = reader.result as string;
+            const base64 = dataUrl.split(",")[1] || "";
+            setAttachments((prev) => [
+              ...prev,
+              {
+                id: genId(),
+                name: file.name,
+                data: base64,
+                mimeType: file.type || "image/png",
+                dataUrl,
+              },
+            ]);
+          } catch (err) {
+            console.error("[AgentDash] Failed to process attachment:", err);
+          }
+        };
+        reader.onerror = () => {
+          console.error("[AgentDash] FileReader error for:", file.name);
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.error("[AgentDash] Failed to add attachments:", err);
+    }
   }, []);
 
   const removeAttachment = useCallback((id: string) => {
-    setAttachments((prev) => {
-      const att = prev.find((a) => a.id === id);
-      if (att) URL.revokeObjectURL(att.previewUrl);
-      return prev.filter((a) => a.id !== id);
-    });
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
   const clearAttachments = useCallback(() => {
-    setAttachments((prev) => {
-      prev.forEach((a) => URL.revokeObjectURL(a.previewUrl));
-      return [];
-    });
+    setAttachments([]);
   }, []);
 
   const submit = useCallback(() => {

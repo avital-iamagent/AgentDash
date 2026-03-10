@@ -125,13 +125,13 @@ export default function PromptBar() {
           {attachments.map((att) => (
             <div key={att.id} className="relative group">
               <img
-                src={att.previewUrl}
+                src={att.dataUrl}
                 alt={att.name}
-                className="h-16 w-auto rounded-md border border-edge object-cover"
+                className="h-16 max-w-[120px] rounded-md border border-edge object-cover"
               />
               <button
                 onClick={() => removeAttachment(att.id)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-ink text-canvas flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-ink text-canvas flex items-center justify-center"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                   <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
