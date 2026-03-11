@@ -187,6 +187,14 @@ export async function* sendPrompt(
 
     sections.push(`## User's message\n${userPrompt}`);
 
+    // In coding phase, append output discipline reminder so it's the last thing
+    // the model sees before generating. This dramatically reduces narration.
+    if (phase === "coding") {
+      sections.push(
+        `## Output reminder\nDo NOT narrate your process. No "Let me...", "Now I'll...", "Looking at...", "I see...", "First,...". Work silently — only output task-start, task-done, questions, and blockers. Suppress ALL other text.`
+      );
+    }
+
     fullPrompt = sections.join("\n\n");
   }
 
