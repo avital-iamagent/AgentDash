@@ -6,6 +6,14 @@ AgentDash is a web wrapper around Claude Code, built on the [Claude Agent SDK](h
 
 Instead of free-form chat, it turns Claude Code into a structured development partner that guides your project through six phases, each with a dedicated AI personality and a clear handoff to the next. All state lives in your file system as readable JSON and Markdown — no databases, no cloud, no magic.
 
+## See It In Action
+
+> AgentFactory — a real project built with AgentDash
+
+![Brainstorm Phase](docs/agentdash-brainstorm.png)
+![Architecture Phase](docs/agentdash-architecture.png)
+![Tasks Phase](docs/agentdash-tasks.png)
+
 ## How It Works
 
 You type prompts in the browser. Claude Code reads and writes structured files in a `.agentdash/` directory inside your project. A local Express server bridges the two using the Claude Agent SDK, streaming responses in real time over WebSocket.
