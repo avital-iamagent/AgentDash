@@ -9,6 +9,7 @@ INSTALL_PATH="$HOME/.agentdash/app"
 PORT=3141
 TTS=false
 GOOGLE_API_KEY=""
+MODEL="opus"
 
 # ── Parse arguments ───────────────────────────────────────
 while [ $# -gt 0 ]; do
@@ -27,6 +28,10 @@ while [ $# -gt 0 ]; do
       ;;
     --google-api-key)
       GOOGLE_API_KEY="$2"
+      shift 2
+      ;;
+    --model)
+      MODEL="$2"
       shift 2
       ;;
     *)
@@ -164,6 +169,7 @@ try { config = JSON.parse(fs.readFileSync(path, 'utf8')); } catch {}
 config.installPath = '$INSTALL_PATH';
 config.tts = $TTS;
 config.port = $PORT;
+config.model = '$MODEL';
 const key = '$GOOGLE_API_KEY';
 if (key) config.googleApiKey = key;
 fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
@@ -240,6 +246,9 @@ if [ "$TTS" = "true" ]; then TTS_LABEL="enabled"; fi
 VISUALS_LABEL="disabled"
 if [ -n "$GOOGLE_API_KEY" ]; then VISUALS_LABEL="enabled"; fi
 
+MODEL_LABEL="Claude Opus (recommended)"
+if [ "$MODEL" = "sonnet" ]; then MODEL_LABEL="Claude Sonnet"; fi
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  🎉  All done!"
@@ -250,6 +259,7 @@ echo "║                                              ║"
 echo "║   ✅  AgentDash installed successfully!      ║"
 echo "║                                              ║"
 printf "║   📂  App:     %-29s║\n" "$INSTALL_PATH"
+printf "║   🧠  Model:   %-29s║\n" "$MODEL_LABEL"
 printf "║   🔊  TTS:     %-29s║\n" "$TTS_LABEL"
 printf "║   🍌  Visuals: %-29s║\n" "$VISUALS_LABEL"
 printf "║   🌐  Port:    %-29s║\n" "$PORT"

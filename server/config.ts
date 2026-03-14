@@ -7,6 +7,7 @@ export interface AgentDashConfig {
   host?: string;
   installPath?: string;
   googleApiKey?: string;
+  model?: "opus" | "sonnet";
 }
 
 const configPath = process.env.AGENTDASH_CONFIG || path.join(

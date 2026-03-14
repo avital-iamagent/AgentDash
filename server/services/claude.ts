@@ -9,6 +9,7 @@ import {
   findRelevantContext,
 } from "./memory.js";
 import { createAgentDashMcpServer } from "./mcp-tools.js";
+import { userConfig } from "../config.js";
 
 /**
  * If there's a task currently in-progress, returns a short reminder to mark it
@@ -234,6 +235,7 @@ export async function* sendPrompt(
             args: ["@playwright/mcp@latest"],
           },
         },
+        ...(userConfig.model && { model: userConfig.model }),
         ...(canUseTool && { canUseTool }),
         ...(signal && { signal }),
       },
@@ -319,6 +321,7 @@ export async function* runResearch(
           "Skill", "Read", "Write", "Bash", "Grep", "Glob",
           "WebSearch", "WebFetch",
         ],
+        ...(userConfig.model && { model: userConfig.model }),
       },
     });
 
@@ -397,6 +400,7 @@ export async function* runReview(
         settingSources: ["project"],
         includePartialMessages: true,
         allowedTools: ["Skill", "Read", "Grep", "Glob"],
+        ...(userConfig.model && { model: userConfig.model }),
       },
     });
 
