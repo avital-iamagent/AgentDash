@@ -19,7 +19,7 @@ function ensureMermaidInit() {
       lineColor: "#3a3a4e",
       secondaryColor: "#22222e",
       tertiaryColor: "#111118",
-      fontFamily: "'Sora', system-ui, sans-serif",
+      fontFamily: "'Geist', system-ui, sans-serif",
       fontSize: "13px",
     },
   });

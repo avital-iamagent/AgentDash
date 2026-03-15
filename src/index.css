@@ -1,16 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Sora', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
 
   --color-canvas: #0a0a0f;
   --color-panel: #111118;
   --color-raised: #1a1a24;
   --color-overlay: #22222e;
-  --color-edge: #2a2a36;
-  --color-edge-bright: #3a3a4e;
+  --color-edge: rgba(255, 255, 255, 0.06);
+  --color-edge-bright: rgba(255, 255, 255, 0.10);
   --color-ink: #e8e8ed;
   --color-ink-muted: #8888a0;
   --color-ink-faint: #4e4e64;
@@ -32,8 +31,8 @@
   --color-panel: #ffffff;
   --color-raised: #ecedf1;
   --color-overlay: #e2e3ea;
-  --color-edge: #d0d2db;
-  --color-edge-bright: #b4b7c5;
+  --color-edge: rgba(0, 0, 0, 0.08);
+  --color-edge-bright: rgba(0, 0, 0, 0.12);
   --color-ink: #1a1b2e;
   --color-ink-muted: #5c5d78;
   --color-ink-faint: #9496ad;

@@ -42,8 +42,8 @@ export default function ResearchSaveModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-panel border border-edge rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+      <div className="bg-panel/90 backdrop-blur-xl border border-edge rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col mx-4">
         {/* Header */}
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-edge">
           <svg className="w-4.5 h-4.5 text-phase-research shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

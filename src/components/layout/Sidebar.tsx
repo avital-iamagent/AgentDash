@@ -12,7 +12,7 @@ export default function Sidebar() {
   const toggleTheme = useAppStore((s) => s.toggleTheme);
 
   return (
-    <aside className="w-56 h-full bg-panel border-r border-edge flex flex-col shrink-0">
+    <aside className="w-56 h-full bg-panel/80 backdrop-blur-xl border-r border-edge flex flex-col shrink-0">
       {/* Project header */}
       <div className="px-4 pt-4 pb-3 border-b border-edge">
         <div className="flex items-center gap-2.5 mb-1">

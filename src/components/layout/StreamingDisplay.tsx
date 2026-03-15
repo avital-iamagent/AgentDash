@@ -39,7 +39,7 @@ export default function StreamingDisplay({ height }: { height?: number }) {
   }
 
   return (
-    <div className="border-t border-edge bg-canvas/50">
+    <div className="border-t border-edge bg-[#111118]/60 backdrop-blur-md">
       <div
         className="overflow-y-auto"
         style={height !== undefined ? { height } : { maxHeight: "40vh" }}

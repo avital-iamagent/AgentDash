@@ -56,7 +56,7 @@ All values MUST be the exact types shown. The UI will break if you deviate.
   "reviewedTasks": ["task-uuid-1", "task-uuid-2"],
   "designTheme": "Modern dark dashboard with glassmorphism accents",
   "colorPalette": "#0a0a0f canvas, #3B82F6 primary, #10B981 success",
-  "typography": "Sora for headings, JetBrains Mono for code",
+  "typography": "Geist for headings, Geist Mono for code",
   "notes": "General design notes and decisions"
 }
 ```

@@ -80,7 +80,7 @@ export default function PromptBar() {
 
   return (
     <div
-      className={`border-t border-edge bg-panel px-4 py-3 ${isStreaming ? "prompt-glow" : ""} ${isDragOver ? "ring-2 ring-accent/40 ring-inset" : ""}`}
+      className={`border-t border-edge bg-panel/80 backdrop-blur-xl px-4 py-3 ${isStreaming ? "prompt-glow" : ""} ${isDragOver ? "ring-2 ring-accent/40 ring-inset" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

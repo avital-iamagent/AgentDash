@@ -14,12 +14,12 @@ export default function AuthErrorModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-md"
         onClick={dismiss}
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm mx-4 bg-panel border border-edge rounded-xl shadow-2xl animate-fade-up">
+      <div className="relative z-10 w-full max-w-sm mx-4 bg-panel/90 backdrop-blur-xl border border-edge rounded-xl shadow-2xl animate-fade-up">
         {/* Header */}
         <div className="px-5 pt-5 pb-3 border-b border-edge flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-phase-tasks/12 text-phase-tasks">
