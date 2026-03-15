@@ -57,7 +57,7 @@ function getPhaseStatus(meta: { phases: Record<string, { status: PhaseStatus }> 
   return meta?.phases[phase]?.status || "locked";
 }
 
-export default function PhaseStepper() {
+export default function PhaseStepper({ collapsed = false }: { collapsed?: boolean }) {
   const meta = useAppStore((s) => s.meta);
   const activePhase = useAppStore((s) => s.activePhase);
   const setActivePhase = useAppStore((s) => s.setActivePhase);
@@ -77,6 +77,55 @@ export default function PhaseStepper() {
     startStreaming();
     const sent = sendWsMessage({ type: "prompt", phase: phaseName, text: "begin" });
     if (!sent) stopStreaming();
+  }
+
+  if (collapsed) {
+    return (
+      <div className="flex flex-col items-center gap-1 stagger">
+        {PHASES.map((phase) => {
+          const status = getPhaseStatus(meta, phase.name);
+          const isActive = activePhase === phase.name;
+          const isClickable = status !== "locked";
+          const colors = PHASE_COLOR_CLASSES[phase.name];
+
+          return (
+            <button
+              key={phase.name}
+              onClick={() => isClickable && handlePhaseClick(phase.name)}
+              disabled={!isClickable}
+              title={`${phase.label}${isActive ? " (active)" : status === "completed" ? " ✓" : status === "locked" ? " (locked)" : ""}`}
+              className={`relative w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                isActive
+                  ? "bg-raised"
+                  : isClickable
+                    ? "hover:bg-raised/50"
+                    : "opacity-40 cursor-not-allowed"
+              }`}
+            >
+              {status === "completed" ? (
+                <div className={`w-[18px] h-[18px] rounded-full ${colors.dot} flex items-center justify-center`}>
+                  <svg className="w-2.5 h-2.5 text-canvas" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              ) : status === "active" ? (
+                <div
+                  className="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center"
+                  style={{ borderColor: `var(--color-phase-${phase.name})` }}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}
+                    style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
+                  />
+                </div>
+              ) : (
+                <div className="w-[18px] h-[18px] rounded-full border-2 border-edge" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
   }
 
   return (

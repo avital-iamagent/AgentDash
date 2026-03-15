@@ -79,6 +79,10 @@ interface AppState {
   autoApprovePermissions: boolean;
   setAutoApprovePermissions: (on: boolean) => void;
 
+  // Sidebar
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+
   // Theme
   theme: "dark" | "light";
   toggleTheme: () => void;
@@ -261,6 +265,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPermissionRequest: (req) => set({ permissionRequest: req }),
   autoApprovePermissions: false,
   setAutoApprovePermissions: (on) => set({ autoApprovePermissions: on }),
+
+  sidebarCollapsed: localStorage.getItem("agentdash-sidebar") === "collapsed",
+  toggleSidebar: () => {
+    const next = !get().sidebarCollapsed;
+    localStorage.setItem("agentdash-sidebar", next ? "collapsed" : "expanded");
+    set({ sidebarCollapsed: next });
+  },
 
   theme: (localStorage.getItem("agentdash-theme") as "dark" | "light") || "dark",
   toggleTheme: () => {
