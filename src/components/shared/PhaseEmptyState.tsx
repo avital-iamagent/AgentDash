@@ -133,21 +133,6 @@ export default function PhaseEmptyState({ phase }: PhaseEmptyStateProps) {
               {config.hint}
             </p>
 
-            {/* Keyboard shortcut hint */}
-            <div className="mt-5 flex items-center justify-center gap-2 text-ink-faint">
-              <span className="text-[11px]">Press</span>
-              <kbd
-                className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium border"
-                style={{
-                  borderColor: `color-mix(in srgb, ${phaseColor} 25%, transparent)`,
-                  color: phaseColor,
-                  backgroundColor: `color-mix(in srgb, ${phaseColor} 5%, transparent)`,
-                }}
-              >
-                /
-              </kbd>
-              <span className="text-[11px]">to start typing</span>
-            </div>
           </>
         )}
       </div>
