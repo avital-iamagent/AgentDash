@@ -27,28 +27,28 @@
 
 /* Light theme overrides */
 [data-theme="light"] {
-  --color-canvas: #f5f6f8;
-  --color-panel: #ffffff;
-  --color-raised: #ecedf1;
-  --color-overlay: #e2e3ea;
-  --color-edge: rgba(0, 0, 0, 0.08);
+  --color-canvas: #f8f8f7;
+  --color-panel: #fafaf9;
+  --color-raised: #f0efed;
+  --color-overlay: #e8e7e4;
+  --color-edge: rgba(0, 0, 0, 0.07);
   --color-edge-bright: rgba(0, 0, 0, 0.12);
-  --color-ink: #1a1b2e;
-  --color-ink-muted: #5c5d78;
-  --color-ink-faint: #9496ad;
+  --color-ink: #1c1c1e;
+  --color-ink-muted: #6b6b73;
+  --color-ink-faint: #a0a0a8;
 
-  --color-phase-brainstorm: #d97706;
-  --color-phase-research: #2563eb;
-  --color-phase-architecture: #7c3aed;
-  --color-phase-tasks: #dc2626;
-  --color-phase-design: #db2777;
-  --color-phase-coding: #0891b2;
+  --color-phase-brainstorm: #b8860b;
+  --color-phase-research: #3b6fc0;
+  --color-phase-architecture: #7a5cb8;
+  --color-phase-tasks: #c44040;
+  --color-phase-design: #b84d7a;
+  --color-phase-coding: #1a8a9a;
 
-  --color-success: #059669;
+  --color-success: #2d8a62;
 }
 
 [data-theme="light"] ::selection {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(122, 92, 184, 0.15);
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--color-edge-bright); }

@@ -41,7 +41,7 @@ export default function StreamingDisplay({ height }: { height?: number }) {
 
   return (
     <div
-      className="border-t-2 bg-[#111118]/60 backdrop-blur-md"
+      className="border-t-2 bg-panel/60 backdrop-blur-md"
       style={{ borderColor: `color-mix(in srgb, var(--color-phase-${activePhase}) 40%, transparent)` }}
     >
       <div
