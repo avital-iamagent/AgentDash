@@ -25,6 +25,7 @@ export default function StreamingDisplay({ height }: { height?: number }) {
   const error = useAppStore((s) => s.error);
   const setError = useAppStore((s) => s.setError);
   const history = useAppStore((s) => s.history);
+  const activePhase = useAppStore((s) => s.activePhase);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom during streaming or when history grows
@@ -39,7 +40,10 @@ export default function StreamingDisplay({ height }: { height?: number }) {
   }
 
   return (
-    <div className="border-t border-edge bg-[#111118]/60 backdrop-blur-md">
+    <div
+      className="border-t-2 bg-[#111118]/60 backdrop-blur-md"
+      style={{ borderColor: `color-mix(in srgb, var(--color-phase-${activePhase}) 40%, transparent)` }}
+    >
       <div
         className="overflow-y-auto"
         style={height !== undefined ? { height } : { maxHeight: "40vh" }}
