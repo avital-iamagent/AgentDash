@@ -65,7 +65,7 @@ export default function DesignBoard() {
   const reviewedCount = uiTasks.filter((t) => reviewedSet.has(t.id) || !!t.designNotes).length;
 
   return (
-    <div className="stagger space-y-6">
+    <div className="stagger space-y-4">
       {/* Skip design banner */}
       <div
         className="rounded-xl border p-4 flex items-center justify-between gap-4 animate-fade-up"

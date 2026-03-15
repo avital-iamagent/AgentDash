@@ -44,7 +44,7 @@ export default function BrainstormBoard() {
   }
 
   return (
-    <div className="stagger space-y-6">
+    <div className="stagger space-y-4">
       {Array.from(grouped.entries()).map(([groupId, group]) => (
         <div key={groupId}>
           {/* Group header */}

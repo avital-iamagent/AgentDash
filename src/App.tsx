@@ -141,13 +141,13 @@ function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0">
         {/* Phase header */}
-        <div className="px-6 pt-5 pb-4 border-b border-edge bg-panel/50">
+        <div className="px-5 pt-4 pb-3 border-b border-edge bg-panel/50">
           <PhaseHeader />
         </div>
 
         {/* Welcome banner for new projects */}
         {showWelcome && (
-          <div className="px-6 py-3 bg-phase-brainstorm/8 border-b border-phase-brainstorm/20 flex items-center justify-between animate-fade-up">
+          <div className="px-5 py-2.5 bg-phase-brainstorm/8 border-b border-phase-brainstorm/20 flex items-center justify-between animate-fade-up">
             <p className="text-sm text-ink-muted">
               <span className="text-phase-brainstorm font-medium">Welcome to {projectName}!</span>
               {" "}Start by describing your idea in the prompt below.
@@ -162,7 +162,7 @@ function Dashboard() {
         )}
 
         {/* Tab bar */}
-        <div className="px-6 flex gap-1 border-b border-edge bg-panel/30">
+        <div className="px-5 flex gap-1 border-b border-edge bg-panel/30">
           {TABS.filter((tab) => !tab.hideForPhases?.includes(activePhase)).map((tab) => {
             const isActive = activeTab === tab.key;
             const tabColor = tab.key === "notes"
@@ -200,7 +200,7 @@ function Dashboard() {
         </div>
 
         {/* Phase content area */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-5 py-4">
           {activeTab === "data" && <PhaseContent phase={activePhase} />}
           {activeTab === "artifact" && <ArtifactPreview phase={activePhase} />}
           {activeTab === "review" && <ReviewPanel phase={activePhase} />}

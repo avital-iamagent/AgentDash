@@ -23,7 +23,7 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-lg border bg-raised p-4 transition-colors ${
+      className={`rounded-lg border bg-raised p-3 transition-colors ${
         highlight ? "ring-1" : ""
       } ${onClick ? "cursor-pointer hover:border-ink-faint" : ""} ${className}`}
       onClick={onClick}

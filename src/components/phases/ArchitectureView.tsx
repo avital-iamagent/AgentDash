@@ -27,7 +27,7 @@ export default function ArchitectureView() {
   if (isEmpty) return <PhaseEmptyState phase="architecture" />;
 
   return (
-    <div className="stagger space-y-8">
+    <div className="stagger space-y-5">
       {/* Diagrams */}
       {hasDiagrams && (
         <section>

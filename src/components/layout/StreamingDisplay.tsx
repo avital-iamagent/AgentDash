@@ -48,7 +48,7 @@ export default function StreamingDisplay({ height }: { height?: number }) {
         className="overflow-y-auto"
         style={height !== undefined ? { height } : { maxHeight: "40vh" }}
       >
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-4 py-3 space-y-3">
           {/* Error message */}
           {error && (
             <div className="flex items-start gap-2 animate-fade-up">

@@ -52,7 +52,7 @@ export default function QuestionForm() {
   }
 
   return (
-    <div className="border-t border-edge bg-panel/40 px-5 py-4 space-y-3 shrink-0">
+    <div className="border-t border-edge bg-panel/40 px-4 py-3 space-y-2.5 shrink-0">
       <p className="text-[10px] font-mono uppercase tracking-wider text-ink-faint">
         Answer each question — then send
       </p>
