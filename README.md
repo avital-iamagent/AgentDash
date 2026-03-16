@@ -8,10 +8,10 @@ Instead of free-form chat, it turns Claude Code into a structured development pa
 
 ## See It In Action
 
-> AgentFactory — a real project built with AgentDash
+> LiteCRM — a real project built with AgentDash
 
 ![Brainstorm Phase](docs/agentdash-brainstorm.png)
-![Architecture Phase](docs/agentdash-architecture.png)
+![Design Phase](docs/agentdash-design.png)
 ![Tasks Phase](docs/agentdash-tasks.png)
 
 ## How It Works
