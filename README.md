@@ -57,10 +57,10 @@ Optional real-time TTS that reads Claude's streamed responses aloud. Strips code
 The quickest way to install is with Claude Code itself:
 
 ```bash
-claude --append-system-prompt "$(curl -sL https://raw.githubusercontent.com/avital-iamagent/AgentDash/main/install-prompt.md)" --allowedTools "Bash,Read"
+claude --append-system-prompt "$(curl -sL https://raw.githubusercontent.com/avital-iamagent/AgentDash/main/install-prompt.md)" --allowedTools "Bash,Read,AskUserQuestion"
 ```
 
-This starts an interactive session where Claude walks you through 4 quick questions (install location, TTS, AI image generation, port), then runs the install script. Type **`go`** to begin when prompted.
+This starts an interactive session where Claude presents clickable preference options (install location, model, TTS, port), then runs the install script. Type **`go`** to begin when prompted.
 
 ### Manual Installation
 
