@@ -11,6 +11,7 @@ Instead of free-form chat, it turns Claude Code into a structured development pa
 > LiteCRM — a real project built with AgentDash
 
 <a href="docs/agentdash-brainstorm.png"><img src="docs/agentdash-brainstorm.png" width="280" alt="Brainstorm Phase"></a>
+<a href="docs/agentdash-architecture.png"><img src="docs/agentdash-architecture.png" width="280" alt="Architecture Phase"></a>
 <a href="docs/agentdash-design.png"><img src="docs/agentdash-design.png" width="280" alt="Design Phase"></a>
 <a href="docs/agentdash-tasks.png"><img src="docs/agentdash-tasks.png" width="280" alt="Tasks Phase"></a>
 
