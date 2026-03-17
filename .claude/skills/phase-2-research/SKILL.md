@@ -26,6 +26,45 @@ After reading the concept-brief, don't just execute — analyze it first. Flag a
 2. Create one research item per open question, using the tag as the category
 3. Create one research item per assumption, with category `validation`
 4. Prioritize: questions that block architecture decisions come first
+5. Present the full research agenda to the user for approval before dispatching
+
+## Parallel Research with Sub-Agents
+
+Once the user approves the research agenda, dispatch all topics in parallel using the **Agent tool**:
+
+### 1. Plan agent assignments
+Group research items into logical assignments. Each agent gets **one focused topic** (or 2-3 tightly related sub-topics that benefit from shared context).
+
+### 2. Dispatch all agents in a single message
+Use the Agent tool to spawn all research agents **in one response** — this runs them in parallel. Each agent's prompt must include:
+- The specific research question(s) to investigate
+- Instructions to use **WebSearch** and **WebFetch** to find real evidence
+- Instructions to write findings to `.agentdash/research-notes/{slug}.md` using this format:
+  ```
+  # Research: {topic}
+  ## Findings
+  {concise findings with source links}
+  ## Recommendation
+  {actionable recommendation}
+  ## Sources
+  - [title](url)
+  ```
+- A reminder to: cite all sources, compare at least 2 alternatives for tech choices, and flag vendor bias
+- Keep findings under 100 lines
+
+### 3. Synthesize results
+After all agents return:
+- Read each findings file from `.agentdash/research-notes/`
+- Update `state.json` with summaries, verdicts, and sources from each agent
+- Cross-reference findings — look for contradictions, gaps, and cross-cutting concerns
+- Present a synthesis to the user highlighting key decisions and any surprises
+
+### Rules
+- **DO NOT do web research yourself** — delegate ALL investigation to sub-agents
+- Each agent should focus on ONE topic — keep questions specific and bounded
+- You can group tightly coupled sub-topics into one agent (e.g., "compare React vs Svelte vs Vue")
+- If any agent returns inconclusive results, spawn a follow-up agent with a refined question
+- After synthesis, if findings challenge earlier assumptions, flag this to the user
 
 ## Working State
 Read and update: `.agentdash/research/state.json`
@@ -45,7 +84,7 @@ Before generating the research-decisions artifact, verify:
 - [ ] Each constraint is tagged with a category: `[functional]`, `[scale]`, `[integration]`, or `[technical-boundary]`
 - [ ] Tech stack choices each compare at least 2 alternatives
 
-If any item fails, do more research or refine with the user before generating.
+If any item fails, spawn additional research agents or refine with the user before generating.
 
 ## When Complete
 Generate `.agentdash/artifacts/research-decisions.md` using template at `.agentdash/templates/research-decisions.template.md`. Keep under 100 lines.

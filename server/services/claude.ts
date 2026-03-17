@@ -226,7 +226,9 @@ export async function* sendPrompt(
         systemPrompt: { type: "preset", preset: "claude_code" },
         settingSources: ["project"],
         includePartialMessages: true,
-        allowedTools: ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
+        allowedTools: phase === "research"
+          ? ["Skill", "Read", "Write", "Bash", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]
+          : ["Skill", "Read", "Write", "Bash", "Grep", "Glob"],
         mcpServers: {
           "agentdash-tools": mcpServer,
           "playwright": {
